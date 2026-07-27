@@ -1,0 +1,124 @@
+name: pepiniere-ia
+
+x-laravel-environment: &laravel-environment
+  APP_NAME: Pépinière IA
+  APP_ENV: local
+  APP_KEY: ${APP_KEY:-}
+  APP_DEBUG: "true"
+  APP_URL: http://localhost:${APP_HTTP_PORT:-8088}
+  APP_LOCALE: fr
+  APP_FALLBACK_LOCALE: fr
+  APP_FAKER_LOCALE: fr_FR
+  LOG_CHANNEL: stderr
+  DB_CONNECTION: mysql
+  DB_HOST: mysql
+  DB_PORT: "3306"
+  DB_DATABASE: ${DB_DATABASE:-pepiniere_ia}
+  DB_USERNAME: ${DB_USERNAME:-pepiniere}
+  DB_PASSWORD: ${DB_PASSWORD:-}
+  SESSION_DRIVER: file
+  CACHE_STORE: file
+  QUEUE_CONNECTION: database
+  MAIL_MAILER: smtp
+  MAIL_HOST: mailpit
+  MAIL_PORT: "1025"
+  MAIL_FROM_ADDRESS: noreply@pepiniere-ia.test
+  MAIL_FROM_NAME: Pépinière IA
+  MANAGER_NAME: ${MANAGER_NAME:-Gérant}
+  MANAGER_EMAIL: ${MANAGER_EMAIL:-manager@example.test}
+  MANAGER_PASSWORD: ${MANAGER_PASSWORD:-}
+  AI_PROVIDER: fake
+  ADVICE_MAX_RECOMMENDATIONS: "3"
+
+services:
+  app:
+    image: pepiniereia-app:local
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    environment: *laravel-environment
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - laravel-storage:/var/www/html/storage
+    healthcheck:
+      test: ["CMD", "php", "artisan", "about", "--only=environment"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
+    ports:
+      - "${APP_HTTP_PORT:-8088}:80"
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.4.10
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-pepiniere_ia}
+      MYSQL_USER: ${DB_USERNAME:-pepiniere}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-}
+    ports:
+      - "33060:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit:v1.30.5
+    environment:
+      MP_DATABASE: /data/mailpit.db
+      MP_MAX_MESSAGES: "500"
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    volumes:
+      - mailpit-data:/data
+    restart: unless-stopped
+
+  queue-worker:
+    image: pepiniereia-app:local
+    environment: *laravel-environment
+    command:
+      [
+        "php",
+        "artisan",
+        "queue:work",
+        "--sleep=3",
+        "--tries=3",
+        "--timeout=90",
+        "--max-time=3600",
+      ]
+    depends_on:
+      app:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    volumes:
+      - laravel-storage:/var/www/html/storage
+    restart: unless-stopped
+
+volumes:
+  laravel-storage:
+  mailpit-data:
+  mysql-data:
