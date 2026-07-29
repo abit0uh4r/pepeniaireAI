@@ -167,7 +167,7 @@ Les plantes inactives ou en rupture restent dans la base mais ne seront pas cand
 
 Le formulaire public est disponible sur `/conseil`, sans création de compte. Il collecte l’environnement, l’exposition, la taille de l’espace, l’entretien disponible, la présence d’animaux et une description libre. Le nom et l’email sont facultatifs.
 
-Une soumission valide crée une demande au statut `PENDING` et un token public aléatoire de 64 caractères hexadécimaux, puis redirige vers `/conseil/suivi/{token}`. Cette page affiche l’état courant et interroge le point `/conseil/suivi/{token}/status` avec un polling limité, sans exposer les données personnelles de la demande. Le traitement asynchrone et l’IA restent reportés aux phases suivantes.
+Une soumission valide crée une demande au statut `PENDING` et un token public aléatoire de 64 caractères hexadécimaux, puis redirige vers `/conseil/suivi/{token}`. Cette page affiche l’état courant et interroge le point `/conseil/suivi/{token}/status` avec un polling limité, sans exposer les données personnelles de la demande. Le traitement asynchrone utilise le fake par défaut ; Groq est une option explicite.
 
 ## Queue
 
@@ -187,6 +187,16 @@ Lancez un worker ponctuel :
 ```bash
 docker compose exec app php artisan queue:work --once
 ```
+
+## Fournisseur Groq optionnel
+
+Le fake reste actif avec `AI_PROVIDER=fake`. Pour un essai manuel, fournissez la clé uniquement dans l’environnement local puis activez Groq :
+
+```bash
+AI_PROVIDER=groq GROQ_API_KEY=... php artisan queue:work --once
+```
+
+Les variables `GROQ_MODEL`, `GROQ_BASE_URL`, `GROQ_TIMEOUT` et `GROQ_MAX_TOKENS` sont documentées dans `.env.example`. La CI et les tests n’appellent jamais le réseau Groq.
 
 ## Mailpit
 

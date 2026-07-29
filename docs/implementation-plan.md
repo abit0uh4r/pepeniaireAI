@@ -368,12 +368,12 @@ Critère de sortie : les mêmes contrôles passent localement et dans GitHub Act
 
 Résultat : `GroqPlantAdvisor` remplace le fake par configuration sans modifier les règles métier.
 
-- [ ] Valider le client ou SDK Groq et sa compatibilité avec Laravel 13.
-- [ ] Définir timeouts, retries, structured output et limites de payload.
-- [ ] Implémenter le mapping vers les DTO existants.
-- [ ] Ajouter des tests HTTP simulés pour succès, timeout, indisponibilité et JSON invalide.
-- [ ] Garder `AI_PROVIDER=fake` en développement et dans les tests.
-- [ ] Effectuer un test manuel Groq opt-in, hors CI.
+- [x] Utiliser le endpoint HTTP compatible OpenAI de Groq sans SDK supplémentaire.
+- [x] Définir timeout, structured output JSON Schema et limites de payload.
+- [x] Implémenter le mapping vers les DTO existants.
+- [x] Ajouter des tests HTTP simulés pour succès, indisponibilité, clé absente et JSON invalide.
+- [x] Garder `AI_PROVIDER=fake` en développement et dans les tests.
+- [ ] Effectuer un test manuel Groq opt-in, hors CI, avec une clé fournie localement.
 
 Validation :
 

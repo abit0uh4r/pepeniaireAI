@@ -152,6 +152,12 @@ La validation défensive écarte chaque entrée invalide (identifiant absent des
 
 La persistance est exécutée dans une transaction SQL courte après l’appel au conseiller. Les plantes recommandées sont rechargées avec verrouillage, puis leur activité et leur stock sont vérifiés une seconde fois. Chaque recommandation copie le prix et le stock observés ; aucune écriture ne modifie le stock courant. La contrainte unique `(advice_request_id, plant_id)` protège les replays.
 
+### TD-017 : Fournisseur Groq opt-in
+
+`GroqPlantAdvisor` utilise le endpoint HTTP compatible OpenAI `https://api.groq.com/openai/v1/chat/completions` avec un token Bearer lu depuis `config/advice.php`. Le modèle, l’URL, le timeout et la limite de tokens sont configurables ; aucun SDK supplémentaire n’est requis.
+
+Le mode `json_schema` est demandé lorsque le modèle configuré le supporte, puis la réponse est décodée et vérifiée avant d’atteindre `AdviceResultValidator`. Le fournisseur ne reçoit ni nom ni email, et seulement les plantes candidates avec leurs propriétés botaniques utiles. `AI_PROVIDER=fake` reste le défaut local et test ; Groq est activé explicitement uniquement dans un environnement disposant d’une clé secrète.
+
 ## Incohérences et ambiguïtés relevées
 
 | Sujet | Constat | Arbitrage |
@@ -160,7 +166,7 @@ La persistance est exécutée dans une transaction SQL courte après l’appel a
 | Authentification | Le diagramme place Sanctum dans le backend ; le mandat impose une session web avec Breeze Blade. | Breeze Blade et sessions, sans Sanctum. |
 | Inscription | Le cahier des charges dit « désactivable en production » ; le mandat exige qu’elle soit désactivée. | Aucune route publique d’inscription dans tous les environnements. |
 | Fournisseur réel | Le cahier des charges inclut un fournisseur réel dans le MVP et place l’IA réelle avant les règles défensives. | Fake d’abord ; préfiltrage et validation défensive avant Groq ; Groq après validation d’une phase dédiée. |
-| SDK IA | Le cahier cite `laravel/ai` sans décision motivée. | Contrat interne sans SDK initial ; décision reportée à la phase Groq. |
+| SDK IA | Le cahier cite `laravel/ai` sans décision motivée. | Contrat interne et client HTTP Laravel ; aucun SDK Groq supplémentaire. |
 | Absence de candidate | Le flux parle d’un résultat sans appel IA, mais la liste des codes présente `NO_ELIGIBLE_PLANTS` comme un échec. | Résultat `COMPLETED` vide. |
 | Tables techniques | Le cahier cite `sessions`, `cache` et `job_batches`, incompatibles ou inutiles avec les réglages imposés. | Créer seulement `jobs` et `failed_jobs`. |
 | Nom du Job | Le diagramme utilise `AnalyzeAdviceRequestJob`, le texte `GeneratePlantAdviceJob`. | Retenir `GeneratePlantAdviceJob`. |
@@ -180,7 +186,7 @@ Ces sujets ne bloquent ni l’installation ni le catalogue :
 - collecte facultative du nom et de l’email du visiteur ;
 - ajout de la relance manuelle des demandes échouées ;
 - conservation éventuelle d’une réponse IA brute nettoyée ;
-- client ou SDK retenu pour Groq ;
+- test manuel Groq opt-in avec une clé locale ;
 - envoi du lien public par email.
 
 Ils devront être décidés avant la phase qui les utilise.

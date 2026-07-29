@@ -27,8 +27,13 @@ x-laravel-environment: &laravel-environment
   MANAGER_NAME: ${MANAGER_NAME:-Gérant}
   MANAGER_EMAIL: ${MANAGER_EMAIL:-manager@example.test}
   MANAGER_PASSWORD: ${MANAGER_PASSWORD:-}
-  AI_PROVIDER: fake
+  AI_PROVIDER: ${AI_PROVIDER:-fake}
   ADVICE_MAX_RECOMMENDATIONS: "3"
+  GROQ_API_KEY: ${GROQ_API_KEY:-}
+  GROQ_BASE_URL: ${GROQ_BASE_URL:-https://api.groq.com/openai/v1}
+  GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-20b}
+  GROQ_TIMEOUT: ${GROQ_TIMEOUT:-30}
+  GROQ_MAX_TOKENS: ${GROQ_MAX_TOKENS:-1200}
 
 services:
   app:
