@@ -295,15 +295,13 @@ Critère de sortie : chaque règle BR-01 à BR-07 dispose d’au moins un test p
 
 ### Phase 8 : Valider et persister les recommandations
 
-Résultat : le parcours asynchrone complet fonctionne sans réseau.
+Résultat : Laravel revalide la sortie du conseiller et conserve uniquement les recommandations sûres avec leurs snapshots.
 
-- [ ] Créer les DTO et le contrat `PlantAdvisor`.
-- [ ] Lier `FakePlantAdvisor` par configuration.
-- [ ] Créer la migration et le modèle des recommandations avec snapshots et contraintes uniques.
-- [ ] Implémenter `AdviceResultValidator`.
-- [ ] Orchestrer le Job avec transitions, retries bornés, idempotence et transaction finale courte.
-- [ ] Produire un résultat COMPLETED vide sans appeler le fake lorsqu’aucune candidate n’existe.
-- [ ] Gérer sorties invalides et échecs contrôlés.
+- [x] Créer la migration et le modèle des recommandations avec snapshots et contraintes uniques.
+- [x] Implémenter `AdviceResultValidator`.
+- [x] Orchestrer le Job avec transitions, retries bornés, idempotence et transaction finale courte.
+- [x] Produire un résultat COMPLETED vide sans appeler le fake lorsqu’aucune candidate n’existe.
+- [x] Rejeter les identifiants inconnus, doublons, plantes inactives ou en rupture et limiter les résultats.
 
 Validation :
 
@@ -316,7 +314,7 @@ php artisan queue:work --once
 vendor/bin/pint --test
 ```
 
-Critère de sortie : les tests rejettent un ID inventé, une rupture, une plante inactive, un doublon et un replay du Job.
+Critère de sortie : les tests écartent un ID inventé, une rupture, une plante inactive, un doublon et un replay du Job.
 
 ### Phase 11 : Finaliser l’interface et la démonstration
 

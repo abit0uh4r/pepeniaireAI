@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'public_token',
@@ -72,5 +73,11 @@ class AdviceRequest extends Model
     public function scopePending(Builder $query): void
     {
         $query->where('status', AdviceRequestStatus::PENDING->value);
+    }
+
+    /** @return HasMany<PlantRecommendation, $this> */
+    public function recommendations(): HasMany
+    {
+        return $this->hasMany(PlantRecommendation::class);
     }
 }

@@ -173,7 +173,7 @@ Une soumission valide crée une demande au statut `PENDING` et un token public a
 
 La configuration utilise `QUEUE_CONNECTION=database`. La migration technique crée `jobs` et `failed_jobs`.
 
-Les nouvelles demandes sont placées dans la queue par `GeneratePlantAdviceJob`. Le fournisseur par défaut est `FakePlantAdvisor` (`AI_PROVIDER=fake`) : il est déterministe, n’appelle aucun réseau et ne reçoit que les candidates préfiltrées par Laravel. `PlantEligibilityService` applique les contraintes d’activité, de stock, d’environnement, d’exposition, d’espace, d’entretien et de sécurité animale. La validation et la persistance des recommandations restent prévues à la phase 8.
+Les nouvelles demandes sont placées dans la queue par `GeneratePlantAdviceJob`. Le fournisseur par défaut est `FakePlantAdvisor` (`AI_PROVIDER=fake`) : il est déterministe, n’appelle aucun réseau et ne reçoit que les candidates préfiltrées par Laravel. `PlantEligibilityService` applique les contraintes d’activité, de stock, d’environnement, d’exposition, d’espace, d’entretien et de sécurité animale. `AdviceResultValidator` écarte les sorties invalides avant la persistance transactionnelle des recommandations et de leurs snapshots de prix et de stock.
 
 Vérifiez le worker Docker :
 

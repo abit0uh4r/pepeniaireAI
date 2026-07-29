@@ -146,6 +146,12 @@ Les documents sources ne donnent pas de seuils numériques pour la taille de l�
 
 Le filtre exige une plante active, en stock, compatible avec l’environnement et l’exposition, dont le niveau d’entretien ne dépasse pas la disponibilité déclarée. Une plante `BOTH` est compatible avec les deux environnements. En présence d’un animal, seule une valeur `pet_safe=true` est acceptée ; `null` reste une sécurité inconnue. Ces seuils sont révisables avant une mise en production.
 
+### TD-016 : Validation et snapshots des recommandations
+
+La validation défensive écarte chaque entrée invalide (identifiant absent des candidates, plante inactive ou en rupture, doublon, rang hors limite ou justification vide) et conserve les entrées valides jusqu’à `ADVICE_MAX_RECOMMENDATIONS`. Une sortie entièrement vide reste un traitement `COMPLETED` sans recommandation.
+
+La persistance est exécutée dans une transaction SQL courte après l’appel au conseiller. Les plantes recommandées sont rechargées avec verrouillage, puis leur activité et leur stock sont vérifiés une seconde fois. Chaque recommandation copie le prix et le stock observés ; aucune écriture ne modifie le stock courant. La contrainte unique `(advice_request_id, plant_id)` protège les replays.
+
 ## Incohérences et ambiguïtés relevées
 
 | Sujet | Constat | Arbitrage |

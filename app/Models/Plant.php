@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\AsEnumCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 
@@ -82,5 +83,11 @@ class Plant extends Model
     public function exposureValues(): Collection
     {
         return $this->exposure ?? collect();
+    }
+
+    /** @return HasMany<PlantRecommendation, $this> */
+    public function recommendations(): HasMany
+    {
+        return $this->hasMany(PlantRecommendation::class);
     }
 }
