@@ -115,13 +115,27 @@ php artisan queue:work --sleep=3 --tries=3 --timeout=90
 
 ## Compte gérant
 
-`DatabaseSeeder` appelle `ManagerSeeder`. Le seeder crée ou met à jour le compte défini par :
+La commande interactive `manager:create` provisionne ou met à jour le compte gérant. Le compte est défini par :
 
 - `MANAGER_NAME` ;
 - `MANAGER_EMAIL` ;
 - `MANAGER_PASSWORD`.
 
-Le mot de passe doit contenir au moins 12 caractères. Le seeder s’arrête avec un message explicite si la configuration manque. L’inscription publique est désactivée : les routes `GET /register` et `POST /register` répondent avec une erreur 404.
+Le mot de passe doit contenir au moins 12 caractères. La commande vérifie l’adresse email, la confirmation du mot de passe et marque le compte comme vérifié. L’inscription publique est désactivée : les routes `GET /register` et `POST /register` répondent avec une erreur 404.
+
+Créez le compte interactif :
+
+```bash
+php artisan manager:create
+```
+
+Avec Docker :
+
+```bash
+docker compose exec app php artisan manager:create
+```
+
+Pour les migrations et les tests, `DatabaseSeeder` conserve `ManagerSeeder` afin de provisionner automatiquement le compte configuré.
 
 Relancez le seeder après une modification des identifiants :
 

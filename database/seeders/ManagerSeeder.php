@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Models\User;
+use App\Services\ManagerProvisioner;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use RuntimeException;
 
 class ManagerSeeder extends Seeder
 {
-    public function run(): void
+    public function run(ManagerProvisioner $provisioner): void
     {
         $name = config('manager.name');
         $email = config('manager.email');
@@ -29,13 +28,6 @@ class ManagerSeeder extends Seeder
             throw new RuntimeException('MANAGER_PASSWORD must contain at least 12 characters.');
         }
 
-        User::query()->updateOrCreate(
-            ['email' => $email],
-            [
-                'name' => $name,
-                'password' => Hash::make($password),
-                'email_verified_at' => now(),
-            ],
-        );
+        $provisioner->provision($name, $email, $password);
     }
 }

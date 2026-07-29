@@ -14,8 +14,12 @@ Route::get('/health', function () {
     ]);
 })->name('health');
 
-Route::get('/dashboard', function () {
+Route::get('/admin', function () {
     return view('dashboard');
+})->middleware(['auth', 'verified'])->name('admin.dashboard');
+
+Route::get('/dashboard', function () {
+    return redirect()->route('admin.dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
