@@ -272,6 +272,8 @@ npm run build
 
 Critère de sortie : la soumission retourne vite, crée `PENDING`, redirige vers un token non prédictible et expose uniquement un suivi public borné. Le traitement asynchrone est ajouté en phase 6.
 
+Le découpage opérationnel validé pour la suite est : phase 6 queue et `FakePlantAdvisor`, phase 7 préfiltrage métier, phase 8 validation et persistance des recommandations, phase 9 fournisseur Groq, phase 10 sécurité/tests/CI et phase 11 interface finale/démonstration.
+
 ### Phase 6 : Implémenter le préfiltrage Laravel
 
 Résultat : Laravel produit une liste déterministe de candidates éligibles avant tout conseiller.

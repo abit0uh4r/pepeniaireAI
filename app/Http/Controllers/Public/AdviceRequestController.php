@@ -10,6 +10,7 @@ use App\Enums\PlantEnvironment;
 use App\Enums\SpaceSize;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Public\StoreAdviceRequest;
+use App\Jobs\GeneratePlantAdviceJob;
 use App\Models\AdviceRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -33,6 +34,7 @@ class AdviceRequestController extends Controller
         unset($data['consent']);
 
         $adviceRequest = AdviceRequest::query()->create($data);
+        GeneratePlantAdviceJob::dispatch($adviceRequest->getKey());
 
         return to_route('advice.track', ['token' => $adviceRequest->public_token]);
     }

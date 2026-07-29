@@ -5,7 +5,13 @@ use App\Enums\Exposure;
 use App\Enums\Level;
 use App\Enums\PlantEnvironment;
 use App\Enums\SpaceSize;
+use App\Jobs\GeneratePlantAdviceJob;
 use App\Models\AdviceRequest;
+use Illuminate\Support\Facades\Queue;
+
+beforeEach(function () {
+    Queue::fake();
+});
 
 function advicePayload(array $overrides = []): array
 {
@@ -35,6 +41,8 @@ test('a visitor can submit a valid advice request with a secure public token', f
     $request = AdviceRequest::query()->sole();
 
     $response->assertRedirect(route('advice.track', ['token' => $request->public_token]));
+
+    Queue::assertPushed(GeneratePlantAdviceJob::class, fn (GeneratePlantAdviceJob $job): bool => $job->adviceRequestId === $request->id);
 
     expect($request->status)->toBe(AdviceRequestStatus::PENDING)
         ->and($request->public_token)->toMatch('/^[a-f0-9]{64}$/')

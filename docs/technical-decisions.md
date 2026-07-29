@@ -134,6 +134,12 @@ Pest couvrira les tests unitaires, fonctionnels et d’intégration. Laravel Pin
 
 La commande de référence sera `php artisan test`. Les filtres Pest pourront accélérer le travail local, mais la CI exécutera toute la suite.
 
+### TD-014 : Contrat IA et exécution asynchrone
+
+Le contrat applicatif `PlantAdvisor` reçoit un `AdviceContext` ne contenant ni nom ni adresse email, ainsi que la liste des identifiants candidats fournie par Laravel. `FakePlantAdvisor` est lié par défaut lorsque `AI_PROVIDER=fake` et produit une réponse déterministe sans accès réseau ni écriture en base.
+
+`GeneratePlantAdviceJob` reçoit l’identifiant de la demande et, ultérieurement, la liste préfiltrée des candidates. Il utilise la connexion database, possède trois tentatives, un timeout de 90 secondes et des délais de reprise bornés. La phase 6 ne persiste pas le résultat conseiller : la validation défensive et la persistance transactionnelle restent réservées à la phase 8.
+
 ## Incohérences et ambiguïtés relevées
 
 | Sujet | Constat | Arbitrage |
