@@ -55,7 +55,7 @@ class AdviceRequestController extends Controller
             'label' => $adviceRequest->status->label(),
             'terminal' => $adviceRequest->status->isTerminal(),
             'updated_at' => $adviceRequest->updated_at?->toIso8601String(),
-        ]);
+        ])->header('Cache-Control', 'private, no-store');
     }
 
     private function findByToken(string $token): AdviceRequest

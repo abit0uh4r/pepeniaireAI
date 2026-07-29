@@ -47,6 +47,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check repository hygiene
+        shell: bash
+        run: |
+          git diff --check
+          if git ls-files --error-unmatch .env >/dev/null 2>&1; then
+            echo ".env must not be tracked"
+            exit 1
+          fi
+          if git grep -n -E 'gsk_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9]{20,}' -- . ':!package-lock.json'; then
+            echo "A credential-like value was found in tracked files"
+            exit 1
+          fi
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -76,6 +89,9 @@ jobs:
 
       - name: Validate Composer metadata
         run: composer validate --strict
+
+      - name: Audit Composer dependencies
+        run: composer audit --no-interaction --locked
 
       - name: Migrate and seed
         run: php artisan migrate:fresh --seed --force

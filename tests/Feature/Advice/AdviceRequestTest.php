@@ -103,10 +103,12 @@ test('a valid public token opens the tracking page without exposing the numeric 
     $adviceRequest = AdviceRequest::factory()->create();
     $trackingUrl = route('advice.track', ['token' => $adviceRequest->public_token]);
 
-    expect($trackingUrl)->not->toContain('/'.$adviceRequest->id);
+    expect(parse_url($trackingUrl, PHP_URL_PATH))
+        ->toMatch('/^\/conseil\/suivi\/[a-f0-9]{64}$/');
 
     $this->get($trackingUrl)
         ->assertOk()
+        ->assertHeader('Cache-Control', 'no-store, private')
         ->assertSee('Suivi de votre demande')
         ->assertSee($adviceRequest->status->label())
         ->assertDontSee('customer_email');
@@ -117,6 +119,7 @@ test('the public status endpoint exposes only safe status data', function () {
 
     $this->getJson(route('advice.status', ['token' => $adviceRequest->public_token]))
         ->assertOk()
+        ->assertHeader('Cache-Control', 'no-store, private')
         ->assertJson([
             'status' => AdviceRequestStatus::PENDING->value,
             'label' => AdviceRequestStatus::PENDING->label(),

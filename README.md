@@ -198,6 +198,8 @@ AI_PROVIDER=groq GROQ_API_KEY=... php artisan queue:work --once
 
 Les variables `GROQ_MODEL`, `GROQ_BASE_URL`, `GROQ_TIMEOUT` et `GROQ_MAX_TOKENS` sont documentées dans `.env.example`. La CI et les tests n’appellent jamais le réseau Groq.
 
+Les réponses publiques de suivi utilisent des tokens aléatoires et sont envoyées avec `Cache-Control: private, no-store`. L’application ajoute également des en-têtes de sécurité communs sur ses réponses HTTP.
+
 ## Mailpit
 
 Laravel envoie les emails locaux vers `mailpit:1025`. L’interface web écoute sur le port `8025`.

@@ -342,11 +342,11 @@ Critère de sortie : le parcours catalogue → demande → worker → résultat 
 
 Résultat : Docker et GitHub Actions reproduisent les contrôles du projet.
 
-- [ ] Créer le workflow GitHub Actions avec PHP 8.3, MySQL 8.4 et Node.
-- [ ] Mettre en cache les dépendances sans masquer les erreurs.
-- [ ] Lancer migrations, Pest, Pint et build Vite.
-- [ ] Vérifier les logs, secrets, rate limits et messages publics.
-- [ ] Documenter installation, création du gérant, worker et démonstration.
+- [x] Maintenir le workflow GitHub Actions avec PHP 8.3, MySQL 8.4 et Node.
+- [x] Mettre en cache les dépendances sans masquer les erreurs.
+- [x] Lancer migrations, Pest, Pint, audit Composer et build Vite.
+- [x] Vérifier les en-têtes de sécurité, secrets, rate limits et messages publics.
+- [x] Documenter installation, création du gérant, worker et démonstration.
 
 Validation :
 

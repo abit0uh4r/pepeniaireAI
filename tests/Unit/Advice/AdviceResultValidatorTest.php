@@ -7,8 +7,8 @@ use App\Services\Advice\AdviceResultValidator;
 
 test('it retains only unique active in-stock candidate recommendations up to the configured limit', function () {
     config()->set('advice.max_recommendations', 2);
-    $first = Plant::factory()->create();
-    $second = Plant::factory()->create();
+    $first = Plant::factory()->create(['stock_quantity' => 4]);
+    $second = Plant::factory()->create(['stock_quantity' => 3]);
     $inactive = Plant::factory()->create(['is_active' => false]);
     $empty = Plant::factory()->create(['stock_quantity' => 0]);
 

@@ -158,6 +158,10 @@ La persistance est exécutée dans une transaction SQL courte après l’appel a
 
 Le mode `json_schema` est demandé lorsque le modèle configuré le supporte, puis la réponse est décodée et vérifiée avant d’atteindre `AdviceResultValidator`. Le fournisseur ne reçoit ni nom ni email, et seulement les plantes candidates avec leurs propriétés botaniques utiles. `AI_PROVIDER=fake` reste le défaut local et test ; Groq est activé explicitement uniquement dans un environnement disposant d’une clé secrète.
 
+### TD-018 : En-têtes et cache des pages publiques
+
+Le middleware global `SecurityHeaders` ajoute les en-têtes de défense communs (`nosniff`, anti-framing, politique de référent, permissions minimales et isolation d’ouverture). Les pages et statuts identifiés par token public sont marqués `private, no-store` afin d’éviter une conservation intermédiaire de données de suivi. HSTS n’est ajouté que lorsque la requête est HTTPS.
+
 ## Incohérences et ambiguïtés relevées
 
 | Sujet | Constat | Arbitrage |
