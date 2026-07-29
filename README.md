@@ -2,7 +2,7 @@
 
 Application monolithique Laravel 13 pour la gestion d’une pépinière et le futur parcours de conseil assisté par IA.
 
-Cette phase fournit le socle technique : Breeze Blade, Tailwind CSS, Alpine.js, Pest, MySQL 8.4, queue database, Mailpit, Docker Compose et GitHub Actions. Elle ne contient encore aucune fonctionnalité métier liée aux plantes ou aux demandes de conseil.
+Le projet fournit un catalogue de plantes administré par un gérant authentifié, prêt à alimenter le futur parcours de conseil : Breeze Blade, Tailwind CSS, Alpine.js, Pest, MySQL 8.4, queue database, Mailpit, Docker Compose et GitHub Actions.
 
 ## Prérequis
 
@@ -148,6 +148,20 @@ Avec Docker :
 ```bash
 docker compose exec app php artisan db:seed --class=ManagerSeeder
 ```
+
+## Catalogue et stock
+
+Le catalogue est accessible uniquement au gérant connecté et vérifié depuis `/admin/plants`.
+
+Le formulaire permet de renseigner le nom, l’espèce, l’environnement, les expositions, les niveaux d’arrosage et d’entretien, les dimensions adultes, la sécurité animale, le prix et le stock. Les fiches peuvent être recherchées, filtrées, modifiées, désactivées ou archivées par suppression logique.
+
+Pour initialiser les trois plantes de démonstration :
+
+```bash
+php artisan db:seed --class=PlantSeeder
+```
+
+Les plantes inactives ou en rupture restent dans la base mais ne seront pas candidates au futur préfiltrage métier.
 
 ## Queue
 

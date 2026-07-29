@@ -225,12 +225,12 @@ Critère de sortie : `/admin` redirige un visiteur, un gérant se connecte, et a
 
 Résultat : le gérant administre des plantes validées sans perdre l’historique futur.
 
-- [ ] Créer enums, migration, modèle, factory et seeder des plantes.
-- [ ] Implémenter les contraintes de base, casts, soft delete et index.
-- [ ] Ajouter Form Requests, policy et CRUD Blade.
-- [ ] Ajouter recherche, filtres et pagination.
-- [ ] Traiter le stock, l’activité et `pet_safe = null` de façon explicite.
-- [ ] Tester création, modification, désactivation, suppression logique et autorisations.
+- [x] Créer enums, migration, modèle, factory et seeder des plantes.
+- [x] Implémenter les contraintes de base, casts, soft delete et index.
+- [x] Ajouter Form Requests, policy et CRUD Blade.
+- [x] Ajouter recherche, filtres et pagination.
+- [x] Traiter le stock, l’activité et `pet_safe = null` de façon explicite.
+- [x] Tester création, modification, désactivation, suppression logique et autorisations.
 
 Validation :
 
