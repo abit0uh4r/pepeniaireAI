@@ -167,7 +167,7 @@ Les plantes inactives ou en rupture restent dans la base mais ne seront pas cand
 
 Le formulaire public est disponible sur `/conseil`, sans création de compte. Il collecte l’environnement, l’exposition, la taille de l’espace, l’entretien disponible, la présence d’animaux et une description libre. Le nom et l’email sont facultatifs.
 
-Une soumission valide crée une demande au statut `PENDING` et un token public aléatoire de 64 caractères hexadécimaux. La page de suivi et le traitement asynchrone seront activés dans les phases suivantes ; aucune donnée visiteur n’est envoyée à un fournisseur IA dans cette phase.
+Une soumission valide crée une demande au statut `PENDING` et un token public aléatoire de 64 caractères hexadécimaux, puis redirige vers `/conseil/suivi/{token}`. Cette page affiche l’état courant et interroge le point `/conseil/suivi/{token}/status` avec un polling limité, sans exposer les données personnelles de la demande. Le traitement asynchrone et l’IA restent reportés aux phases suivantes.
 
 ## Queue
 

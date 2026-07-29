@@ -1,4 +1,4 @@
-<x-guest-layout>
+<x-public-layout>
     <div class="min-h-screen bg-[#f5f7f1] px-4 py-10 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-5xl">
             <div class="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
@@ -135,4 +135,4 @@
             </form>
         </div>
     </div>
-</x-guest-layout>
+</x-public-layout>

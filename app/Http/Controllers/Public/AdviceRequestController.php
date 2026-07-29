@@ -11,6 +11,7 @@ use App\Enums\SpaceSize;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Public\StoreAdviceRequest;
 use App\Models\AdviceRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -33,8 +34,32 @@ class AdviceRequestController extends Controller
 
         $adviceRequest = AdviceRequest::query()->create($data);
 
-        return to_route('advice.create')
-            ->with('status', 'Votre demande est enregistrée. Le suivi sera disponible dès le lancement du traitement.')
-            ->with('advice_token', $adviceRequest->public_token);
+        return to_route('advice.track', ['token' => $adviceRequest->public_token]);
+    }
+
+    public function track(string $token): View
+    {
+        return view('advice.track', [
+            'adviceRequest' => $this->findByToken($token),
+        ]);
+    }
+
+    public function status(string $token): JsonResponse
+    {
+        $adviceRequest = $this->findByToken($token);
+
+        return response()->json([
+            'status' => $adviceRequest->status->value,
+            'label' => $adviceRequest->status->label(),
+            'terminal' => $adviceRequest->status->isTerminal(),
+            'updated_at' => $adviceRequest->updated_at?->toIso8601String(),
+        ]);
+    }
+
+    private function findByToken(string $token): AdviceRequest
+    {
+        return AdviceRequest::query()
+            ->where('public_token', $token)
+            ->firstOrFail();
     }
 }

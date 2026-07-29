@@ -246,28 +246,31 @@ Critère de sortie : le catalogue fonctionne de bout en bout et une personne non
 
 ### Phase 5 : Enregistrer et exposer les demandes publiques
 
-Résultat : un visiteur soumet une demande et reçoit une URL par token sans attendre un traitement.
+Résultat : un visiteur soumet une demande, reçoit une URL par token et peut suivre son état sans attendre un traitement.
 
 - [ ] Valider les choix encore ouverts sur les seuils d’espace et les données de contact.
 - [x] Créer enums, migration, modèle et factory de demande.
 - [x] Ajouter le formulaire public et sa Form Request.
 - [x] Générer le token public sécurisé.
-- [ ] Créer l’état PENDING et dispatcher le Job.
-- [ ] Ajouter la page Blade de suivi et le point de polling limité.
-- [ ] Tester validation, rate limiting, token valide/invalide et absence de fuite d’identifiant.
+- [x] Créer et exposer l’état `PENDING`.
+- [ ] Dispatcher le Job (reporté à la phase 6).
+- [x] Ajouter la page Blade de suivi et le point de polling limité.
+- [x] Tester validation, rate limiting, token valide/invalide et absence de fuite d’identifiant.
+
+Le dispatch du Job est volontairement reporté à la phase 6 dédiée à la queue et au `FakePlantAdvisor`.
 
 Validation :
 
 ```bash
 php artisan migrate:fresh --seed
-php artisan route:list --path=conseils
+php artisan route:list --path=conseil
 php artisan test tests/Feature/Advice/SubmitAdviceRequestTest.php
 php artisan test tests/Feature/Advice/PublicAdviceResultTest.php
 vendor/bin/pint --test
 npm run build
 ```
 
-Critère de sortie : la soumission retourne vite, crée PENDING, dispatche un Job et redirige vers un token non prédictible.
+Critère de sortie : la soumission retourne vite, crée `PENDING`, redirige vers un token non prédictible et expose uniquement un suivi public borné. Le traitement asynchrone est ajouté en phase 6.
 
 ### Phase 6 : Implémenter le préfiltrage Laravel
 

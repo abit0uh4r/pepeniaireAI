@@ -45,6 +45,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=vendor /usr/bin/composer /usr/bin/composer
+COPY docker/php/entrypoint.sh /usr/local/bin/pepiniere-entrypoint
 
 WORKDIR /var/www/html
 
@@ -56,6 +57,10 @@ RUN cp .env.example .env \
     && composer dump-autoload --no-interaction --optimize \
     && php artisan package:discover --ansi \
     && chown -R www-data:www-data bootstrap/cache storage
+
+RUN chmod +x /usr/local/bin/pepiniere-entrypoint
+
+ENTRYPOINT ["pepiniere-entrypoint"]
 
 EXPOSE 9000
 

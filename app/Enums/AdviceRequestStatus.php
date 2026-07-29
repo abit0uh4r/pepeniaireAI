@@ -20,4 +20,12 @@ enum AdviceRequestStatus: string
             self::FAILED => 'Échec',
         };
     }
+
+    public function isTerminal(): bool
+    {
+        return match ($this) {
+            self::PENDING, self::PROCESSING => false,
+            self::COMPLETED, self::FAILED => true,
+        };
+    }
 }

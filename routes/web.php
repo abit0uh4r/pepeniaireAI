@@ -20,6 +20,14 @@ Route::get('/conseil', [AdviceRequestController::class, 'create'])->name('advice
 Route::post('/conseil', [AdviceRequestController::class, 'store'])
     ->middleware('throttle:10,1')
     ->name('advice.store');
+Route::get('/conseil/suivi/{token}', [AdviceRequestController::class, 'track'])
+    ->where('token', '[a-f0-9]{64}')
+    ->middleware('throttle:20,1')
+    ->name('advice.track');
+Route::get('/conseil/suivi/{token}/status', [AdviceRequestController::class, 'status'])
+    ->where('token', '[a-f0-9]{64}')
+    ->middleware('throttle:60,1')
+    ->name('advice.status');
 
 Route::get('/admin', function () {
     return view('dashboard');

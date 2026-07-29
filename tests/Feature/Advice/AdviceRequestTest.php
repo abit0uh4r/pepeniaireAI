@@ -32,10 +32,9 @@ test('visitors can open the public advice form without authentication', function
 test('a visitor can submit a valid advice request with a secure public token', function () {
     $response = $this->post(route('advice.store'), advicePayload());
 
-    $response->assertRedirect(route('advice.create'))
-        ->assertSessionHas('status');
-
     $request = AdviceRequest::query()->sole();
+
+    $response->assertRedirect(route('advice.track', ['token' => $request->public_token]));
 
     expect($request->status)->toBe(AdviceRequestStatus::PENDING)
         ->and($request->public_token)->toMatch('/^[a-f0-9]{64}$/')
@@ -51,7 +50,7 @@ test('optional visitor contact details can be omitted', function () {
         'has_pets' => '1',
     ]));
 
-    $response->assertRedirect(route('advice.create'));
+    $response->assertRedirect();
 
     $request = AdviceRequest::query()->sole();
 
@@ -84,10 +83,71 @@ test('public advice creation is rate limited', function () {
     foreach (range(1, 10) as $attempt) {
         $this->post(route('advice.store'), advicePayload([
             'customer_email' => "visitor-{$attempt}@example.test",
-        ]))->assertRedirect(route('advice.create'));
+        ]))->assertRedirect();
     }
 
     $this->post(route('advice.store'), advicePayload([
         'customer_email' => 'blocked@example.test',
     ]))->assertTooManyRequests();
 });
+
+test('a valid public token opens the tracking page without exposing the numeric id', function () {
+    $adviceRequest = AdviceRequest::factory()->create();
+    $trackingUrl = route('advice.track', ['token' => $adviceRequest->public_token]);
+
+    expect($trackingUrl)->not->toContain('/'.$adviceRequest->id);
+
+    $this->get($trackingUrl)
+        ->assertOk()
+        ->assertSee('Suivi de votre demande')
+        ->assertSee($adviceRequest->status->label())
+        ->assertDontSee('customer_email');
+});
+
+test('the public status endpoint exposes only safe status data', function () {
+    $adviceRequest = AdviceRequest::factory()->create();
+
+    $this->getJson(route('advice.status', ['token' => $adviceRequest->public_token]))
+        ->assertOk()
+        ->assertJson([
+            'status' => AdviceRequestStatus::PENDING->value,
+            'label' => AdviceRequestStatus::PENDING->label(),
+            'terminal' => false,
+        ])
+        ->assertJsonMissingPath('customer_email')
+        ->assertJsonMissingPath('free_text_description');
+});
+
+test('public status polling is rate limited', function () {
+    $adviceRequest = AdviceRequest::factory()->create();
+    $statusUrl = route('advice.status', ['token' => $adviceRequest->public_token]);
+
+    foreach (range(1, 60) as $attempt) {
+        $this->getJson($statusUrl)->assertOk();
+    }
+
+    $this->getJson($statusUrl)->assertTooManyRequests();
+});
+
+test('terminal statuses stop polling', function (AdviceRequestStatus $status) {
+    $adviceRequest = AdviceRequest::factory()->state(['status' => $status])->create();
+
+    $this->getJson(route('advice.status', ['token' => $adviceRequest->public_token]))
+        ->assertOk()
+        ->assertJson([
+            'status' => $status->value,
+            'label' => $status->label(),
+            'terminal' => true,
+        ]);
+})->with([
+    AdviceRequestStatus::COMPLETED,
+    AdviceRequestStatus::FAILED,
+]);
+
+test('unknown and numeric public identifiers are rejected', function (string $token) {
+    $this->get(route('advice.track', ['token' => $token]))->assertNotFound();
+    $this->getJson(route('advice.status', ['token' => $token]))->assertNotFound();
+})->with([
+    'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    '123',
+]);
