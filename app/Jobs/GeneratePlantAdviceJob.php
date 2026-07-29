@@ -8,6 +8,7 @@ use App\Contracts\AI\PlantAdvisor;
 use App\DTOs\Advice\AdviceContext;
 use App\Enums\AdviceRequestStatus;
 use App\Models\AdviceRequest;
+use App\Services\Plants\PlantEligibilityService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -23,12 +24,8 @@ final class GeneratePlantAdviceJob implements ShouldQueue
 
     public int $timeout = 90;
 
-    /**
-     * @param  list<int>  $candidatePlantIds
-     */
     public function __construct(
         public int $adviceRequestId,
-        public array $candidatePlantIds = [],
     ) {}
 
     /**
@@ -39,7 +36,7 @@ final class GeneratePlantAdviceJob implements ShouldQueue
         return [10, 30];
     }
 
-    public function handle(PlantAdvisor $plantAdvisor): void
+    public function handle(PlantAdvisor $plantAdvisor, PlantEligibilityService $eligibilityService): void
     {
         $adviceRequest = AdviceRequest::query()->find($this->adviceRequestId);
 
@@ -60,12 +57,14 @@ final class GeneratePlantAdviceJob implements ShouldQueue
         }
 
         $adviceRequest->refresh();
+        $context = AdviceContext::fromRequest($adviceRequest);
+        $candidatePlantIds = $eligibilityService->eligiblePlantIds($context);
 
-        if ($this->candidatePlantIds !== []) {
-            // Phase 8 will validate and persist this result. Phase 6 only wires the contract and queue.
+        if ($candidatePlantIds !== []) {
+            // Phase 8 will validate and persist this result. This phase only supplies eligible candidates.
             $plantAdvisor->advise(
-                AdviceContext::fromRequest($adviceRequest),
-                $this->candidatePlantIds,
+                $context,
+                $candidatePlantIds,
             );
         }
 

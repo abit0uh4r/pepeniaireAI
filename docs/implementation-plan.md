@@ -274,7 +274,7 @@ Critère de sortie : la soumission retourne vite, crée `PENDING`, redirige vers
 
 Le découpage opérationnel validé pour la suite est : phase 6 queue et `FakePlantAdvisor`, phase 7 préfiltrage métier, phase 8 validation et persistance des recommandations, phase 9 fournisseur Groq, phase 10 sécurité/tests/CI et phase 11 interface finale/démonstration.
 
-### Phase 6 : Implémenter le préfiltrage Laravel
+### Phase 7 : Implémenter le préfiltrage Laravel
 
 Résultat : Laravel produit une liste déterministe de candidates éligibles avant tout conseiller.
 
@@ -293,7 +293,7 @@ vendor/bin/pint --test
 
 Critère de sortie : chaque règle BR-01 à BR-07 dispose d’au moins un test positif et négatif.
 
-### Phase 7 : Ajouter le contrat IA et le fake déterministe
+### Phase 8 : Valider et persister les recommandations
 
 Résultat : le parcours asynchrone complet fonctionne sans réseau.
 
@@ -318,7 +318,7 @@ vendor/bin/pint --test
 
 Critère de sortie : les tests rejettent un ID inventé, une rupture, une plante inactive, un doublon et un replay du Job.
 
-### Phase 8 : Finaliser les résultats et l’historique
+### Phase 11 : Finaliser l’interface et la démonstration
 
 Résultat : le visiteur consulte le résultat et le gérant audite les demandes.
 
@@ -340,7 +340,7 @@ npm run build
 
 Critère de sortie : le parcours catalogue → demande → worker → résultat est démontrable avec le fake.
 
-### Phase 9 : Ajouter la CI et durcir le MVP
+### Phase 10 : Sécurité, tests et CI
 
 Résultat : Docker et GitHub Actions reproduisent les contrôles du projet.
 
@@ -366,7 +366,7 @@ git diff --check
 
 Critère de sortie : les mêmes contrôles passent localement et dans GitHub Actions, sans réseau IA.
 
-### Phase 10 : Intégrer Groq après validation du MVP fake
+### Phase 9 : Intégrer Groq après validation du MVP fake
 
 Résultat : `GroqPlantAdvisor` remplace le fake par configuration sans modifier les règles métier.
 

@@ -3,21 +3,42 @@
 use App\Contracts\AI\PlantAdvisor;
 use App\DTOs\Advice\AdviceResult;
 use App\Enums\AdviceRequestStatus;
+use App\Enums\Exposure;
+use App\Enums\Level;
+use App\Enums\PlantEnvironment;
+use App\Enums\SpaceSize;
 use App\Jobs\GeneratePlantAdviceJob;
 use App\Models\AdviceRequest;
+use App\Models\Plant;
+use App\Services\Plants\PlantEligibilityService;
 use Mockery\MockInterface;
 
 test('the job claims a pending request and completes it after the fake advisor runs', function () {
-    $adviceRequest = AdviceRequest::factory()->create();
+    $adviceRequest = AdviceRequest::factory()->create([
+        'environment' => PlantEnvironment::INDOOR,
+        'exposure' => Exposure::PARTIAL_SHADE,
+        'space_size' => SpaceSize::MEDIUM,
+        'maintenance_availability' => Level::MEDIUM,
+        'has_pets' => false,
+    ]);
+    $plant = Plant::factory()->create([
+        'environment' => PlantEnvironment::INDOOR,
+        'exposure' => [Exposure::PARTIAL_SHADE],
+        'maintenance_level' => Level::LOW,
+        'adult_height_cm' => 80,
+        'adult_width_cm' => 50,
+        'stock_quantity' => 5,
+    ]);
 
-    $advisor = Mockery::mock(PlantAdvisor::class, function (MockInterface $mock): void {
+    $advisor = Mockery::mock(PlantAdvisor::class, function (MockInterface $mock) use ($plant): void {
         $mock->shouldReceive('advise')
             ->once()
+            ->withArgs(fn ($context, array $candidatePlantIds): bool => $candidatePlantIds === [$plant->id])
             ->andReturn(new AdviceResult('Résumé', 'Conseil', []));
     });
 
-    $job = new GeneratePlantAdviceJob($adviceRequest->id, [10, 11]);
-    $job->handle($advisor);
+    $job = new GeneratePlantAdviceJob($adviceRequest->id);
+    $job->handle($advisor, app(PlantEligibilityService::class));
 
     $adviceRequest->refresh();
 
@@ -32,7 +53,7 @@ test('the job completes an empty candidate set without calling the advisor', fun
     $advisor = Mockery::mock(PlantAdvisor::class);
     $advisor->shouldNotReceive('advise');
 
-    (new GeneratePlantAdviceJob($adviceRequest->id))->handle($advisor);
+    (new GeneratePlantAdviceJob($adviceRequest->id))->handle($advisor, app(PlantEligibilityService::class));
 
     expect($adviceRequest->refresh()->status)->toBe(AdviceRequestStatus::COMPLETED);
 });
@@ -42,7 +63,7 @@ test('the job is idempotent for a terminal request', function () {
     $advisor = Mockery::mock(PlantAdvisor::class);
     $advisor->shouldNotReceive('advise');
 
-    (new GeneratePlantAdviceJob($adviceRequest->id, [10]))->handle($advisor);
+    (new GeneratePlantAdviceJob($adviceRequest->id))->handle($advisor, app(PlantEligibilityService::class));
 
     expect($adviceRequest->refresh()->status)->toBe(AdviceRequestStatus::COMPLETED);
 });

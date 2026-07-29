@@ -138,7 +138,13 @@ La commande de référence sera `php artisan test`. Les filtres Pest pourront ac
 
 Le contrat applicatif `PlantAdvisor` reçoit un `AdviceContext` ne contenant ni nom ni adresse email, ainsi que la liste des identifiants candidats fournie par Laravel. `FakePlantAdvisor` est lié par défaut lorsque `AI_PROVIDER=fake` et produit une réponse déterministe sans accès réseau ni écriture en base.
 
-`GeneratePlantAdviceJob` reçoit l’identifiant de la demande et, ultérieurement, la liste préfiltrée des candidates. Il utilise la connexion database, possède trois tentatives, un timeout de 90 secondes et des délais de reprise bornés. La phase 6 ne persiste pas le résultat conseiller : la validation défensive et la persistance transactionnelle restent réservées à la phase 8.
+`GeneratePlantAdviceJob` reçoit l’identifiant de la demande, reconstruit le contexte et demande à `PlantEligibilityService` les candidates au moment de l’exécution. Il utilise la connexion database, possède trois tentatives, un timeout de 90 secondes et des délais de reprise bornés. La phase 6 ne persiste pas le résultat conseiller : la validation défensive et la persistance transactionnelle restent réservées à la phase 8.
+
+### TD-015 : Valeurs initiales du préfiltrage
+
+Les documents sources ne donnent pas de seuils numériques pour la taille de l’espace. Pour rendre la phase 7 déterministe, la configuration utilise provisoirement les limites suivantes : SMALL (60 × 45 cm), MEDIUM (120 × 80 cm) et LARGE (240 × 160 cm), dans l’ordre hauteur × largeur adulte.
+
+Le filtre exige une plante active, en stock, compatible avec l’environnement et l’exposition, dont le niveau d’entretien ne dépasse pas la disponibilité déclarée. Une plante `BOTH` est compatible avec les deux environnements. En présence d’un animal, seule une valeur `pet_safe=true` est acceptée ; `null` reste une sécurité inconnue. Ces seuils sont révisables avant une mise en production.
 
 ## Incohérences et ambiguïtés relevées
 
