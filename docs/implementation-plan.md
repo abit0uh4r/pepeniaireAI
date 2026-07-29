@@ -249,9 +249,9 @@ Critère de sortie : le catalogue fonctionne de bout en bout et une personne non
 Résultat : un visiteur soumet une demande et reçoit une URL par token sans attendre un traitement.
 
 - [ ] Valider les choix encore ouverts sur les seuils d’espace et les données de contact.
-- [ ] Créer enums, migration, modèle et factory de demande.
-- [ ] Ajouter le formulaire public et sa Form Request.
-- [ ] Générer le token public sécurisé.
+- [x] Créer enums, migration, modèle et factory de demande.
+- [x] Ajouter le formulaire public et sa Form Request.
+- [x] Générer le token public sécurisé.
 - [ ] Créer l’état PENDING et dispatcher le Job.
 - [ ] Ajouter la page Blade de suivi et le point de polling limité.
 - [ ] Tester validation, rate limiting, token valide/invalide et absence de fuite d’identifiant.

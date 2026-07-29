@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\PlantController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Public\AdviceRequestController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -14,6 +15,11 @@ Route::get('/health', function () {
         'application' => config('app.name'),
     ]);
 })->name('health');
+
+Route::get('/conseil', [AdviceRequestController::class, 'create'])->name('advice.create');
+Route::post('/conseil', [AdviceRequestController::class, 'store'])
+    ->middleware('throttle:10,1')
+    ->name('advice.store');
 
 Route::get('/admin', function () {
     return view('dashboard');

@@ -2,7 +2,7 @@
 
 Application monolithique Laravel 13 pour la gestion d’une pépinière et le futur parcours de conseil assisté par IA.
 
-Le projet fournit un catalogue de plantes administré par un gérant authentifié, prêt à alimenter le futur parcours de conseil : Breeze Blade, Tailwind CSS, Alpine.js, Pest, MySQL 8.4, queue database, Mailpit, Docker Compose et GitHub Actions.
+Le projet fournit un catalogue de plantes administré par un gérant authentifié et un formulaire public de conseil : Breeze Blade, Tailwind CSS, Alpine.js, Pest, MySQL 8.4, queue database, Mailpit, Docker Compose et GitHub Actions.
 
 ## Prérequis
 
@@ -162,6 +162,12 @@ php artisan db:seed --class=PlantSeeder
 ```
 
 Les plantes inactives ou en rupture restent dans la base mais ne seront pas candidates au futur préfiltrage métier.
+
+## Demande de conseil publique
+
+Le formulaire public est disponible sur `/conseil`, sans création de compte. Il collecte l’environnement, l’exposition, la taille de l’espace, l’entretien disponible, la présence d’animaux et une description libre. Le nom et l’email sont facultatifs.
+
+Une soumission valide crée une demande au statut `PENDING` et un token public aléatoire de 64 caractères hexadécimaux. La page de suivi et le traitement asynchrone seront activés dans les phases suivantes ; aucune donnée visiteur n’est envoyée à un fournisseur IA dans cette phase.
 
 ## Queue
 
