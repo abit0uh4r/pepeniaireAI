@@ -7,6 +7,8 @@ use App\Enums\PlantEnvironment;
 use App\Enums\SpaceSize;
 use App\Jobs\GeneratePlantAdviceJob;
 use App\Models\AdviceRequest;
+use App\Models\Plant;
+use App\Models\PlantRecommendation;
 use Illuminate\Support\Facades\Queue;
 
 beforeEach(function () {
@@ -109,7 +111,7 @@ test('a valid public token opens the tracking page without exposing the numeric 
     $this->get($trackingUrl)
         ->assertOk()
         ->assertHeader('Cache-Control', 'no-store, private')
-        ->assertSee('Suivi de votre demande')
+        ->assertSee('Votre conseil prend racine.')
         ->assertSee($adviceRequest->status->label())
         ->assertDontSee('customer_email');
 });
@@ -127,6 +129,35 @@ test('the public status endpoint exposes only safe status data', function () {
         ])
         ->assertJsonMissingPath('customer_email')
         ->assertJsonMissingPath('free_text_description');
+});
+
+test('a completed request displays persisted recommendations and escapes advisor text', function () {
+    $plant = Plant::factory()->create([
+        'name' => 'Calathea test',
+        'price' => '31.90',
+        'stock_quantity' => 2,
+    ]);
+    $adviceRequest = AdviceRequest::factory()->completed()->create([
+        'space_summary' => '<script>alert("summary")</script>',
+        'general_advice' => 'Gardez une lumière douce.',
+    ]);
+    PlantRecommendation::factory()->create([
+        'advice_request_id' => $adviceRequest,
+        'plant_id' => $plant,
+        'reason' => '<img src=x onerror=alert(1)> Très adaptée.',
+        'price_snapshot' => '29.90',
+        'stock_quantity_snapshot' => 5,
+    ]);
+
+    $this->get(route('advice.track', ['token' => $adviceRequest->public_token]))
+        ->assertOk()
+        ->assertSee('Votre sélection est prête.')
+        ->assertSee('Calathea test')
+        ->assertSee('29,90 €')
+        ->assertSee('Stock observé')
+        ->assertSee('&lt;script&gt;alert(&quot;summary&quot;)&lt;/script&gt;', escape: false)
+        ->assertDontSee('<script>', escape: false)
+        ->assertDontSee('<img src=x onerror=alert(1)>', escape: false);
 });
 
 test('public status polling is rate limited', function () {

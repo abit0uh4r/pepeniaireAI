@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\AdviceRequestController as AdminAdviceRequestController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PlantController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\AdviceRequestController;
@@ -29,15 +31,16 @@ Route::get('/conseil/suivi/{token}/status', [AdviceRequestController::class, 'st
     ->middleware('throttle:60,1')
     ->name('advice.status');
 
-Route::get('/admin', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('admin.dashboard');
+Route::get('/admin', DashboardController::class)
+    ->middleware(['auth', 'verified'])
+    ->name('admin.dashboard');
 
 Route::get('/dashboard', function () {
     return redirect()->route('admin.dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+    Route::resource('advice-requests', AdminAdviceRequestController::class)->only(['index', 'show']);
     Route::resource('plants', PlantController::class)->except(['show']);
     Route::patch('plants/{plant}/deactivate', [PlantController::class, 'deactivate'])
         ->name('plants.deactivate');

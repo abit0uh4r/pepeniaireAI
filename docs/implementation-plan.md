@@ -320,11 +320,11 @@ Critère de sortie : les tests écartent un ID inventé, une rupture, une plante
 
 Résultat : le visiteur consulte le résultat et le gérant audite les demandes.
 
-- [ ] Afficher les quatre états sur la page publique.
-- [ ] Afficher résumé, raisons, entretien, avertissement, snapshot et stock courant.
-- [ ] Ajouter tableau de bord, historique filtrable et détail d’administration.
-- [ ] Vérifier l’échappement des textes issus du conseiller.
-- [ ] Vérifier l’accessibilité clavier et la présentation mobile.
+- [x] Afficher les quatre états sur la page publique.
+- [x] Afficher résumé, raisons, entretien, avertissement, snapshot et stock courant.
+- [x] Ajouter tableau de bord, historique filtrable et détail d’administration.
+- [x] Vérifier l’échappement des textes issus du conseiller.
+- [x] Vérifier l’accessibilité clavier et la présentation mobile.
 
 Validation :
 

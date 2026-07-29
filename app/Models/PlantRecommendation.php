@@ -41,6 +41,6 @@ class PlantRecommendation extends Model
     /** @return BelongsTo<Plant, $this> */
     public function plant(): BelongsTo
     {
-        return $this->belongsTo(Plant::class);
+        return $this->belongsTo(Plant::class)->withTrashed();
     }
 }

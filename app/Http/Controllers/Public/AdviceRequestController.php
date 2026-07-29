@@ -42,7 +42,7 @@ class AdviceRequestController extends Controller
     public function track(string $token): View
     {
         return view('advice.track', [
-            'adviceRequest' => $this->findByToken($token),
+            'adviceRequest' => $this->findByToken($token)->load('recommendations.plant'),
         ]);
     }
 

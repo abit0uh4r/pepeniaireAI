@@ -9,6 +9,12 @@ public/build
 public/hot
 public/storage
 storage/*.key
+storage/app/*
+!storage/app/.gitignore
+!storage/app/private
+!storage/app/private/.gitignore
+!storage/app/public
+!storage/app/public/.gitignore
 storage/logs/*
 storage/framework/cache/*
 storage/framework/sessions/*

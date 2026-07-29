@@ -169,6 +169,30 @@ Le formulaire public est disponible sur `/conseil`, sans création de compte. Il
 
 Une soumission valide crée une demande au statut `PENDING` et un token public aléatoire de 64 caractères hexadécimaux, puis redirige vers `/conseil/suivi/{token}`. Cette page affiche l’état courant et interroge le point `/conseil/suivi/{token}/status` avec un polling limité, sans exposer les données personnelles de la demande. Le traitement asynchrone utilise le fake par défaut ; Groq est une option explicite.
 
+Lorsque le traitement est terminé, la page présente le résumé, les recommandations validées, les raisons, les informations d’entretien, le prix et le stock observés ainsi que le stock courant. Le gérant retrouve l’historique filtrable dans `/admin/advice-requests`.
+
+## Parcours de démonstration
+
+Le fake permet une démonstration complète et sans accès réseau :
+
+```bash
+docker compose up -d
+docker compose exec app php artisan migrate:fresh --seed
+docker compose ps
+```
+
+1. Ouvrir `http://localhost:8088/admin` et vérifier les plantes de démonstration.
+2. Ouvrir `http://localhost:8088/conseil` dans une fenêtre privée.
+3. Soumettre une demande compatible avec le catalogue.
+4. Conserver la page de suivi ouverte : le worker traite automatiquement la demande.
+5. Consulter le résultat public, puis son audit dans **Administration → Demandes**.
+
+Pour observer le traitement :
+
+```bash
+docker compose logs --tail=50 queue-worker
+```
+
 ## Queue
 
 La configuration utilise `QUEUE_CONNECTION=database`. La migration technique crée `jobs` et `failed_jobs`.

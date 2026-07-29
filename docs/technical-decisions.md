@@ -162,6 +162,12 @@ Le mode `json_schema` est demandé lorsque le modèle configuré le supporte, pu
 
 Le middleware global `SecurityHeaders` ajoute les en-têtes de défense communs (`nosniff`, anti-framing, politique de référent, permissions minimales et isolation d’ouverture). Les pages et statuts identifiés par token public sont marqués `private, no-store` afin d’éviter une conservation intermédiaire de données de suivi. HSTS n’est ajouté que lorsque la requête est HTTPS.
 
+### TD-019 : Consultation publique et audit gérant
+
+La page publique recharge son rendu Blade lorsque le polling détecte un état terminal. Elle affiche uniquement les recommandations persistées, avec les textes échappés, les snapshots de prix et de stock et la disponibilité courante séparée. L’administration expose un historique filtrable et un détail d’audit derrière `auth` et `verified` ; l’identifiant numérique reste réservé à cet espace privé.
+
+L’interface adopte un système visuel commun « carnet botanique » réalisé avec Blade, Tailwind CSS et Alpine.js. Aucun composant SPA ni bibliothèque JavaScript supplémentaire n’est introduit.
+
 ## Incohérences et ambiguïtés relevées
 
 | Sujet | Constat | Arbitrage |

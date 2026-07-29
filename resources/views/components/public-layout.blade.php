@@ -7,11 +7,12 @@
 
         <title>{{ config('app.name', 'Laravel') }}</title>
 
+        <meta name="description" content="Des conseils de plantes fondés sur le catalogue et le stock réel de la pépinière.">
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=fraunces:600,700|manrope:400,500,600,700&display=swap" rel="stylesheet" />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="min-h-screen bg-[#f5f7f1] font-sans text-gray-900 antialiased">
+    <body class="min-h-screen bg-[#f4f0e6] font-sans text-slate-950 antialiased">
         {{ $slot }}
     </body>
 </html>

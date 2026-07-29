@@ -78,6 +78,6 @@ class AdviceRequest extends Model
     /** @return HasMany<PlantRecommendation, $this> */
     public function recommendations(): HasMany
     {
-        return $this->hasMany(PlantRecommendation::class);
+        return $this->hasMany(PlantRecommendation::class)->orderBy('rank');
     }
 }

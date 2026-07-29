@@ -13,7 +13,9 @@ test('authenticated users can access the admin dashboard', function () {
 
     $response = $this->actingAs($user)->get('/admin');
 
-    $response->assertOk()->assertSee('Administration')->assertSee('Vous êtes connecté.');
+    $response->assertOk()
+        ->assertSee('Le jardin, en un regard.')
+        ->assertSee('Catalogue actif');
 });
 
 test('the legacy dashboard URL redirects to the admin dashboard', function () {

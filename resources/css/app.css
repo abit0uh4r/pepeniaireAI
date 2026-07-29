@@ -1,3 +1,23 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    [x-cloak] {
+        display: none !important;
+    }
+
+    ::selection {
+        background: #d9f99d;
+        color: #052e16;
+    }
+}
+
+@layer utilities {
+    .botanical-grid {
+        background-image:
+            linear-gradient(to right, rgb(20 83 45 / 0.06) 1px, transparent 1px),
+            linear-gradient(to bottom, rgb(20 83 45 / 0.06) 1px, transparent 1px);
+        background-size: 32px 32px;
+    }
+}
