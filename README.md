@@ -1,6 +1,6 @@
 # Pépinière IA
 
-Application monolithique Laravel 13 pour la gestion d’une pépinière et le futur parcours de conseil assisté par IA.
+Application monolithique Laravel 13 pour la gestion d’une pépinière et le parcours de conseil assisté par IA.
 
 Le projet fournit un catalogue de plantes administré par un gérant authentifié et un formulaire public de conseil : Breeze Blade, Tailwind CSS, Alpine.js, Pest, MySQL 8.4, queue database, Docker Compose et GitHub Actions.
 
@@ -44,7 +44,7 @@ Renseignez ensuite ces valeurs dans `.env` :
 DB_PASSWORD=mot-de-passe-local
 DB_ROOT_PASSWORD=mot-de-passe-root-local
 MANAGER_NAME="Nom du gérant"
-MANAGER_EMAIL=gerant@example.test
+MANAGER_EMAIL=manager@example.test
 MANAGER_PASSWORD=mot-de-passe-de-12-caracteres-minimum
 ```
 
@@ -78,6 +78,7 @@ Accès locaux :
 
 - application : <http://localhost:8088>
 - santé : <http://localhost:8088/health>
+- connexion gérant : <http://localhost:8088/login>
 - MySQL depuis l’hôte : `127.0.0.1:33060`
 
 Le conteneur `queue-worker` utilise la même image `pepiniereia-app:local` que le conteneur `app`.
@@ -163,7 +164,7 @@ Les plantes inactives ou en rupture restent dans la base mais ne seront pas cand
 
 ## Demande de conseil publique
 
-Le formulaire public est disponible sur `/conseil`, sans création de compte. Il collecte l’environnement, l’exposition, la taille de l’espace, l’entretien disponible et une description libre. Le nom et l’email sont facultatifs.
+Le formulaire public est disponible sur `/conseil`, sans création de compte. Il collecte l’environnement, l’exposition, la taille de l’espace, l’entretien disponible et une description libre. Le nom et l’email sont facultatifs ; ces coordonnées ne sont pas envoyées au fournisseur IA.
 
 Une soumission valide crée une demande au statut `PENDING` et un token public aléatoire de 64 caractères hexadécimaux, puis redirige vers `/conseil/suivi/{token}`. Cette page affiche l’état courant et interroge le point `/conseil/suivi/{token}/status` avec un polling limité, sans exposer les données personnelles de la demande. Le traitement asynchrone utilise le fake par défaut ; Groq est une option explicite.
 
@@ -195,7 +196,7 @@ docker compose logs --tail=50 queue-worker
 
 La configuration utilise `QUEUE_CONNECTION=database`. La migration technique crée `jobs` et `failed_jobs`.
 
-Les nouvelles demandes sont placées dans la queue par `GeneratePlantAdviceJob`. Le fournisseur par défaut est `FakePlantAdvisor` (`AI_PROVIDER=fake`) : il est déterministe, n’appelle aucun réseau et ne reçoit que les candidates préfiltrées par Laravel. `PlantEligibilityService` applique les contraintes d’activité, de stock, d’environnement, d’exposition, d’espace et d’entretien. Le Job revalide directement la structure, les identifiants, les doublons et la limite avant la persistance transactionnelle des recommandations et du snapshot de quantité.
+Les nouvelles demandes sont placées dans la queue par `GeneratePlantAdviceJob`. Le fournisseur par défaut de `.env.example` est `FakePlantAdvisor` (`AI_PROVIDER=fake`) : il est déterministe, n’appelle aucun réseau et ne reçoit que les candidates préfiltrées par Laravel. `PlantEligibilityService` applique les contraintes d’activité, de stock, d’environnement, d’exposition, d’espace et d’entretien. Le Job revalide directement la structure, les identifiants, les doublons et la limite avant la persistance transactionnelle des recommandations et du snapshot de quantité.
 
 Vérifiez le worker Docker :
 
@@ -218,7 +219,7 @@ Le fake reste actif avec `AI_PROVIDER=fake`. Pour un essai manuel, fournissez la
 AI_PROVIDER=groq GROQ_API_KEY=... php artisan queue:work --once
 ```
 
-Les variables `GROQ_MODEL`, `GROQ_BASE_URL`, `GROQ_TIMEOUT` et `GROQ_MAX_TOKENS` sont documentées dans `.env.example`. La CI et les tests n’appellent jamais le réseau Groq.
+Les variables `GROQ_MODEL`, `GROQ_BASE_URL`, `GROQ_TIMEOUT` et `GROQ_MAX_TOKENS` sont documentées dans `.env.example`. Le prompt demande à Groq de rédiger exclusivement en français les résumés, conseils et raisons. Les réponses déjà enregistrées ne sont pas retraduites. La CI et les tests n’appellent jamais le réseau Groq.
 
 Les réponses publiques de suivi utilisent des tokens aléatoires et sont envoyées avec `Cache-Control: private, no-store`. L’application ajoute également des en-têtes de sécurité communs sur ses réponses HTTP.
 
@@ -302,7 +303,7 @@ docker compose down --volumes
 ```text
 Navigateur
     |
-  Nginx :8080
+  Nginx :8088
     |
 Laravel PHP-FPM 8.3
     |-- MySQL 8.4
