@@ -71,10 +71,12 @@ test('it sends only the request context and prefiltered plant fields', function 
 
     Http::assertSent(function (Request $request) use ($plant): bool {
         $body = $request->data();
+        $systemMessage = $body['messages'][0]['content'];
         $message = $body['messages'][1]['content'];
 
         return $body['model'] === 'openai/gpt-oss-20b'
             && $body['response_format']['type'] === 'json_schema'
+            && str_contains($systemMessage, 'exclusivement en français')
             && str_contains($message, 'Ficus test')
             && str_contains($message, (string) $plant->id)
             && ! str_contains($message, 'customer_email')

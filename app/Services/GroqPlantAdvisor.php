@@ -37,7 +37,7 @@ final class GroqPlantAdvisor implements PlantAdvisor
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => 'Tu es un conseiller botanique. Laravel fournit la liste authoritative des candidates. Retourne uniquement un objet JSON conforme au schéma demandé. Utilise exclusivement les identifiants fournis et n’invente aucune plante ni propriété botanique.',
+                    'content' => 'Tu es un conseiller botanique francophone. Réponds exclusivement en français : toutes les valeurs textuelles de space_summary, general_advice et reason doivent être rédigées en français naturel. Laravel fournit la liste authoritative des candidates. Retourne uniquement un objet JSON conforme au schéma demandé. Utilise exclusivement les identifiants fournis et n’invente aucune plante ni propriété botanique.',
                 ],
                 [
                     'role' => 'user',
