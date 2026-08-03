@@ -88,6 +88,8 @@ test('the dashboard provides navigation without statistics', function () {
     $this->actingAs($manager)
         ->get(route('admin.dashboard'))
         ->assertOk()
+        ->assertSee('Le jardin, en un regard.')
+        ->assertSee('Parcours de démonstration')
         ->assertSee('Gérer les plantes')
         ->assertSee('Consulter les demandes')
         ->assertDontSee('Conseils rendus');

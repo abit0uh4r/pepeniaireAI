@@ -95,7 +95,7 @@
                             <li class="rounded-[2rem] border border-emerald-950/10 bg-[#f4f0e6] p-6">
                                 <span class="font-display text-4xl text-lime-600">01</span>
                                 <h3 class="mt-8 font-display text-2xl font-semibold text-emerald-950">Vous décrivez</h3>
-                                <p class="mt-3 text-sm leading-6 text-slate-600">Environnement, exposition, place disponible, entretien et animaux.</p>
+                                <p class="mt-3 text-sm leading-6 text-slate-600">Environnement, exposition, place disponible et entretien.</p>
                             </li>
                             <li class="rounded-[2rem] border border-emerald-950/10 bg-emerald-950 p-6 text-white">
                                 <span class="font-display text-4xl text-lime-300">02</span>
@@ -105,7 +105,7 @@
                             <li class="rounded-[2rem] border border-emerald-950/10 bg-lime-200 p-6">
                                 <span class="font-display text-4xl text-emerald-800">03</span>
                                 <h3 class="mt-8 font-display text-2xl font-semibold text-emerald-950">Vous choisissez</h3>
-                                <p class="mt-3 text-sm leading-6 text-emerald-950/75">Chaque recommandation explique pourquoi elle convient, prix et stock observés inclus.</p>
+                                <p class="mt-3 text-sm leading-6 text-emerald-950/75">Chaque recommandation explique pourquoi elle convient, avec la quantité observée au moment du conseil.</p>
                             </li>
                         </ol>
                     </div>
