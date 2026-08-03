@@ -28,7 +28,6 @@ class AdviceRequestFactory extends Factory
             'exposure' => fake()->randomElement(Exposure::cases()),
             'space_size' => fake()->randomElement(SpaceSize::cases()),
             'maintenance_availability' => fake()->randomElement(Level::cases()),
-            'has_pets' => fake()->boolean(),
             'free_text_description' => fake()->paragraph(),
             'status' => AdviceRequestStatus::PENDING,
         ];

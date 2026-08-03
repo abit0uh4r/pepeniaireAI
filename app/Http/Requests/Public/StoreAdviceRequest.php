@@ -33,7 +33,6 @@ class StoreAdviceRequest extends FormRequest
             'exposure' => ['required', Rule::enum(Exposure::class)],
             'space_size' => ['required', Rule::enum(SpaceSize::class)],
             'maintenance_availability' => ['required', Rule::enum(Level::class)],
-            'has_pets' => ['present', 'boolean'],
             'free_text_description' => ['required', 'string', 'min:20', 'max:5000'],
             'consent' => ['accepted'],
         ];

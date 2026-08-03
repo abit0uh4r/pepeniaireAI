@@ -51,7 +51,7 @@ Les emails locaux utiliseront le driver `log`. Aucun serveur SMTP de développem
 
 ### TD-005 : Contrat du conseiller
 
-Le code applicatif définira son propre contrat `PlantAdvisor`. Le fake constituera l’implémentation par défaut en développement et dans les tests.
+Le code applicatif définit `PlantAdvisor` directement dans `app/Services`, à côté de ses implémentations. Le fake constitue l’implémentation par défaut en développement et dans les tests. Aucun dossier `Contracts`, `DTOs` ou `Actions` n’est utilisé pour le MVP ; les échanges avec le conseiller utilisent des tableaux documentés par PHPDoc.
 
 La première version ne dépendra d’aucun SDK de fournisseur. Le choix d’un client HTTP ou d’un SDK pour Groq interviendra dans une phase séparée. Cette décision évite de coupler le domaine au « SDK laravel/ai » cité dans le cahier des charges avant d’avoir validé sa compatibilité et son utilité.
 
@@ -77,9 +77,7 @@ PENDING → PROCESSING → COMPLETED
 FAILED → PENDING, uniquement lors d’une relance autorisée ultérieure
 ```
 
-Une absence de candidate donne `COMPLETED` avec une liste vide, un résumé explicite et aucun appel au conseiller. `NO_ELIGIBLE_PLANTS` devient un code de résultat métier interne, pas un motif `FAILED`.
-
-Une réponse IA sans aucune recommandation valide donne `FAILED` avec `NO_VALID_RECOMMENDATION`, car le traitement externe n’a produit aucun résultat fiable.
+Une absence de candidate donne `FAILED` sans appel au conseiller. Une réponse IA invalide donne également `FAILED`. Les deux causes applicatives sont `NO_ELIGIBLE_PLANTS` et `AI_ERROR`, mais aucun champ `failure_code` n’est persisté : seule une formulation nettoyée est conservée dans `failure_message`.
 
 ### TD-008 : Idempotence et concurrence
 
@@ -101,13 +99,11 @@ Le token ne sera ni dérivé de l’identifiant, ni affiché dans les logs appli
 
 ### TD-010 : Données catalogue
 
-Les statuts, niveaux, environnements et tailles utiliseront des backed enums PHP stockées dans des colonnes `VARCHAR`. Ce choix évite les migrations coûteuses propres aux `ENUM` MySQL.
+Les statuts, niveaux, environnements et tailles utilisent des backed enums PHP. L’exposition d’une plante devient une valeur unique stockée dans un `ENUM` simple ; le préfiltrage utilise une comparaison directe et non `whereJsonContains`.
 
-Les expositions multiples utiliseront une colonne JSON castée en collection d’enums et validée par Laravel. Le volume du MVP ne justifie pas une table de liaison. Une évolution vers une table normalisée restera possible si les recherches deviennent plus complexes.
+`pet_safe` et la règle BR-06 sont reportés après le MVP.
 
-`pet_safe` restera nullable. Pour une demande avec animal, seule la valeur explicite `true` rendra la plante éligible.
-
-Les plantes utiliseront la suppression logique. La clé étrangère des recommandations utilisera une suppression restreinte. Le prix et le stock seront copiés dans la recommandation lors de la finalisation.
+Les plantes utilisent la suppression logique. La clé étrangère des recommandations utilise une suppression restreinte. Seule la quantité en stock est copiée dans la recommandation lors de la finalisation ; le snapshot de prix est reporté.
 
 ### TD-011 : Seuils d’espace
 
@@ -135,27 +131,29 @@ La commande de référence sera `php artisan test`. Les filtres Pest pourront ac
 
 ### TD-014 : Contrat IA et exécution asynchrone
 
-Le contrat applicatif `PlantAdvisor` reçoit un `AdviceContext` ne contenant ni nom ni adresse email, ainsi que la liste des identifiants candidats fournie par Laravel. `FakePlantAdvisor` est lié par défaut lorsque `AI_PROVIDER=fake` et produit une réponse déterministe sans accès réseau ni écriture en base.
+Le contrat applicatif `PlantAdvisor` reçoit un tableau de contexte ne contenant ni nom ni adresse email, ainsi qu’une collection de plantes candidates fournie par Laravel. `FakePlantAdvisor` est lié par défaut lorsque `AI_PROVIDER=fake` et produit une réponse déterministe sans accès réseau ni écriture en base.
 
-`GeneratePlantAdviceJob` reçoit l’identifiant de la demande, reconstruit le contexte et demande à `PlantEligibilityService` les candidates au moment de l’exécution. Il utilise la connexion database, possède trois tentatives, un timeout de 90 secondes et des délais de reprise bornés. La phase 6 ne persiste pas le résultat conseiller : la validation défensive et la persistance transactionnelle restent réservées à la phase 8.
+`GeneratePlantAdviceJob` reçoit l’identifiant de la demande, reconstruit le contexte et demande à `PlantEligibilityService` les candidates au moment de l’exécution. Il utilise la connexion database, possède trois tentatives, un timeout de 90 secondes et des délais de reprise bornés. La validation défensive de la réponse IA réside directement dans le Job avant la persistance transactionnelle.
 
 ### TD-015 : Valeurs initiales du préfiltrage
 
 Les documents sources ne donnent pas de seuils numériques pour la taille de l’espace. Pour rendre la phase 7 déterministe, la configuration utilise provisoirement les limites suivantes : SMALL (60 × 45 cm), MEDIUM (120 × 80 cm) et LARGE (240 × 160 cm), dans l’ordre hauteur × largeur adulte.
 
-Le filtre exige une plante active, en stock, compatible avec l’environnement et l’exposition, dont le niveau d’entretien ne dépasse pas la disponibilité déclarée. Une plante `BOTH` est compatible avec les deux environnements. En présence d’un animal, seule une valeur `pet_safe=true` est acceptée ; `null` reste une sécurité inconnue. Ces seuils sont révisables avant une mise en production.
+Le filtre exige une plante active, en stock, compatible avec l’environnement et l’exposition unique demandée, dont le niveau d’entretien ne dépasse pas la disponibilité déclarée. Une plante `BOTH` est compatible avec les deux environnements. Ces seuils sont révisables avant une mise en production.
 
-### TD-016 : Validation et snapshots des recommandations
+La migration du catalogue existant conserve la première valeur de l’ancien tableau JSON d’expositions. Une valeur absente ou non reconnue devient `PARTIAL_SHADE`, afin que la colonne `ENUM` reste non nulle et exploitable.
 
-La validation défensive écarte chaque entrée invalide (identifiant absent des candidates, plante inactive ou en rupture, doublon, rang hors limite ou justification vide) et conserve les entrées valides jusqu’à `ADVICE_MAX_RECOMMENDATIONS`. Une sortie entièrement vide reste un traitement `COMPLETED` sans recommandation.
+### TD-016 : Validation dans le Job et snapshot de quantité
 
-La persistance est exécutée dans une transaction SQL courte après l’appel au conseiller. Les plantes recommandées sont rechargées avec verrouillage, puis leur activité et leur stock sont vérifiés une seconde fois. Chaque recommandation copie le prix et le stock observés ; aucune écriture ne modifie le stock courant. La contrainte unique `(advice_request_id, plant_id)` protège les replays.
+La validation défensive intégrée au Job écarte chaque entrée invalide (identifiant absent des candidates, plante inactive ou en rupture, doublon, rang hors limite ou justification vide) et conserve les entrées valides jusqu’à `ADVICE_MAX_RECOMMENDATIONS`. Une sortie IA sans recommandation valide relève de `AI_ERROR`.
+
+La persistance est exécutée dans une transaction SQL courte après l’appel au conseiller. Les plantes recommandées sont rechargées avec verrouillage, puis leur activité et leur stock sont vérifiés une seconde fois. Chaque recommandation copie uniquement la quantité observée ; aucune écriture ne modifie le stock courant. La contrainte unique `(advice_request_id, plant_id)` protège les replays.
 
 ### TD-017 : Fournisseur Groq opt-in
 
 `GroqPlantAdvisor` utilise le endpoint HTTP compatible OpenAI `https://api.groq.com/openai/v1/chat/completions` avec un token Bearer lu depuis `config/advice.php`. Le modèle, l’URL, le timeout et la limite de tokens sont configurables ; aucun SDK supplémentaire n’est requis.
 
-Le mode `json_schema` est demandé lorsque le modèle configuré le supporte, puis la réponse est décodée et vérifiée avant d’atteindre `AdviceResultValidator`. Le fournisseur ne reçoit ni nom ni email, et seulement les plantes candidates avec leurs propriétés botaniques utiles. `AI_PROVIDER=fake` reste le défaut local et test ; Groq est activé explicitement uniquement dans un environnement disposant d’une clé secrète.
+Le mode `json_schema` est demandé lorsque le modèle configuré le supporte, puis la réponse décodée est transmise au Job pour validation. Le fournisseur ne reçoit ni nom ni email, et seulement les plantes candidates avec leurs propriétés botaniques utiles. `AI_PROVIDER=fake` reste le défaut local et test ; Groq est activé explicitement uniquement dans un environnement disposant d’une clé secrète.
 
 ### TD-018 : En-têtes et cache des pages publiques
 
@@ -163,7 +161,7 @@ Le middleware global `SecurityHeaders` ajoute les en-têtes de défense communs 
 
 ### TD-019 : Consultation publique et audit gérant
 
-La page publique recharge son rendu Blade lorsque le polling détecte un état terminal. Elle affiche uniquement les recommandations persistées, avec les textes échappés, les snapshots de prix et de stock et la disponibilité courante séparée. L’administration expose un historique filtrable et un détail d’audit derrière `auth` et `verified` ; l’identifiant numérique reste réservé à cet espace privé.
+La page publique recharge son rendu Blade lorsque le polling détecte un état terminal. Elle affiche uniquement les recommandations persistées, avec les textes échappés et le snapshot de quantité. La comparaison avec le stock courant, le snapshot de prix, les filtres par période et les statistiques du tableau de bord sont reportés après le MVP. L’administration expose un historique simple et un détail derrière `auth` et `verified` ; l’identifiant numérique reste réservé à cet espace privé.
 
 L’interface adopte un système visuel commun « carnet botanique » réalisé avec Blade, Tailwind CSS et Alpine.js. Aucun composant SPA ni bibliothèque JavaScript supplémentaire n’est introduit.
 
@@ -176,13 +174,13 @@ L’interface adopte un système visuel commun « carnet botanique » réalisé 
 | Inscription | Le cahier des charges dit « désactivable en production » ; le mandat exige qu’elle soit désactivée. | Aucune route publique d’inscription dans tous les environnements. |
 | Fournisseur réel | Le cahier des charges inclut un fournisseur réel dans le MVP et place l’IA réelle avant les règles défensives. | Fake d’abord ; préfiltrage et validation défensive avant Groq ; Groq après validation d’une phase dédiée. |
 | SDK IA | Le cahier cite `laravel/ai` sans décision motivée. | Contrat interne et client HTTP Laravel ; aucun SDK Groq supplémentaire. |
-| Absence de candidate | Le flux parle d’un résultat sans appel IA, mais la liste des codes présente `NO_ELIGIBLE_PLANTS` comme un échec. | Résultat `COMPLETED` vide. |
+| Absence de candidate | Le flux parle d’un résultat sans appel IA et la liste des causes présente `NO_ELIGIBLE_PLANTS`. | Résultat `FAILED` avec message nettoyé, sans champ de code. |
 | Tables techniques | Le cahier cite `sessions`, `cache` et `job_batches`, incompatibles ou inutiles avec les réglages imposés. | Créer seulement `jobs` et `failed_jobs`. |
 | Nom du Job | Le diagramme utilise `AnalyzeAdviceRequestJob`, le texte `GeneratePlantAdviceJob`. | Retenir `GeneratePlantAdviceJob`. |
 | Stockage local | Le diagramme prévoit pièces jointes et documents, absents du périmètre MVP. | Aucun stockage documentaire métier dans le MVP. |
 | Email | Le flux montre un email optionnel, sans besoin de serveur SMTP local. | Utiliser le driver `log` ; garder l’envoi du lien hors du chemin critique et hors MVP initial. |
 | Description libre | Le champ est décrit comme « obligatoire ou fortement recommandé ». | Le rendre obligatoire avec limites de longueur. |
-| Expositions | Le modèle hésite entre JSON et SET. | JSON casté et validé par Laravel. |
+| Expositions | Le modèle hésite entre JSON et SET. | Une valeur `ENUM` simple castée vers `Exposure`. |
 | Seuils de taille | BR-04 exige des seuils qui ne sont pas fournis. | Configuration dédiée, valeurs à faire valider avant implémentation du filtre. |
 | Relance | Le diagramme parle de retries automatiques et le cahier d’une relance manuelle optionnelle. | Retries bornés dès le MVP ; relance manuelle dans une phase optionnelle. |
 | Suppression | Le CRUD suggère une suppression, mais l’historique doit rester intact. | Désactivation et soft delete ; aucune suppression physique d’une plante référencée. |
@@ -195,6 +193,9 @@ Ces sujets ne bloquent ni l’installation ni le catalogue :
 - collecte facultative du nom et de l’email du visiteur ;
 - ajout de la relance manuelle des demandes échouées ;
 - conservation éventuelle d’une réponse IA brute nettoyée ;
+- sécurité animale (`pet_safe`) et règle BR-06 ;
+- snapshot du prix et comparaison avec le stock courant ;
+- filtres d’historique par période et statistiques du tableau de bord ;
 - test manuel Groq opt-in avec une clé locale ;
 - envoi du lien public par email.
 

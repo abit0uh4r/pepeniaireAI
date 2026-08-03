@@ -6,123 +6,43 @@ Le projet sera construit par tranches courtes qui laissent toujours le dépôt d
 
 - Inclus : initialisation Laravel, authentification du gérant, catalogue et stock, demandes publiques, queue database, fake IA, préfiltrage, validation et persistance, consultation par token, administration, Docker, CI et documentation.
 - Hors périmètre initial : Groq, inscription publique, comptes visiteurs, paiement, réservation, API REST séparée, SPA, pièces jointes et envoi d’email.
-- Reporté après le socle MVP : GroqPlantAdvisor, relance manuelle et email du lien public.
+- Reporté après le MVP : relance manuelle, email du lien public, sécurité animale, snapshots de prix, comparaison de stock, filtres par période et statistiques.
 
 ## Arborescence Laravel cible
 
 ```text
-.
-├── .github/
-│   └── workflows/
-│       └── ci.yml
-├── app/
-│   ├── Actions/
-│   │   └── Advice/
-│   │       ├── CompleteAdviceRequest.php
-│   │       └── SubmitAdviceRequest.php
-│   ├── Console/
-│   │   └── Commands/
-│   │       └── CreateManager.php
-│   ├── Contracts/
-│   │   └── AI/
-│   │       └── PlantAdvisor.php
-│   ├── DTOs/
-│   │   └── Advice/
-│   │       ├── AdviceContext.php
-│   │       ├── AdviceResult.php
-│   │       └── PlantRecommendationData.php
-│   ├── Enums/
-│   │   ├── AdviceFailureCode.php
-│   │   ├── AdviceRequestStatus.php
-│   │   ├── Exposure.php
-│   │   ├── Level.php
-│   │   ├── PlantEnvironment.php
-│   │   └── SpaceSize.php
-│   ├── Http/
-│   │   ├── Controllers/
-│   │   │   ├── Admin/
-│   │   │   │   ├── AdviceRequestController.php
-│   │   │   │   ├── DashboardController.php
-│   │   │   │   └── PlantController.php
-│   │   │   └── Public/
-│   │   │       ├── AdviceRequestController.php
-│   │   │       └── AdviceResultController.php
-│   │   └── Requests/
-│   │       ├── Admin/
-│   │       │   ├── StorePlantRequest.php
-│   │       │   └── UpdatePlantRequest.php
-│   │       └── Public/
-│   │           └── StoreAdviceRequest.php
-│   ├── Jobs/
-│   │   └── GeneratePlantAdviceJob.php
-│   ├── Models/
-│   │   ├── AdviceRecommendation.php
-│   │   ├── AdviceRequest.php
-│   │   ├── Plant.php
-│   │   └── User.php
-│   ├── Policies/
-│   │   ├── AdviceRequestPolicy.php
-│   │   └── PlantPolicy.php
-│   ├── Providers/
-│   │   └── AppServiceProvider.php
-│   └── Services/
-│       ├── AI/
-│       │   ├── AdviceResultValidator.php
-│       │   └── FakePlantAdvisor.php
-│       └── Plants/
-│           └── PlantEligibilityService.php
-├── bootstrap/
-├── config/
-│   └── advice.php
-├── database/
-│   ├── factories/
-│   ├── migrations/
-│   └── seeders/
-├── docker/
-│   ├── nginx/
-│   │   └── default.conf
-│   └── php/
-│       └── Dockerfile
-├── docs/
-├── public/
-├── resources/
-│   ├── css/
-│   ├── js/
-│   └── views/
-│       ├── admin/
-│       │   ├── advice-requests/
-│       │   ├── plants/
-│       │   └── dashboard.blade.php
-│       ├── advice/
-│       │   ├── create.blade.php
-│       │   └── show.blade.php
-│       ├── auth/
-│       ├── components/
-│       └── layouts/
-├── routes/
-│   ├── auth.php
-│   ├── console.php
-│   └── web.php
-├── storage/
-├── tests/
-│   ├── Feature/
-│   │   ├── Admin/
-│   │   ├── Advice/
-│   │   ├── Auth/
-│   │   └── Jobs/
-│   ├── Unit/
-│   │   ├── Advice/
-│   │   └── Plants/
-│   └── Pest.php
-├── AGENTS.md
-├── compose.yaml
-├── composer.json
-├── package.json
-├── phpunit.xml
-└── README.md
+app/
+├── Console/Commands/
+├── Enums/
+├── Http/
+│   ├── Controllers/
+│   └── Requests/
+├── Jobs/
+│   └── GeneratePlantAdviceJob.php
+├── Models/
+├── Policies/
+├── Providers/
+└── Services/
+    ├── FakePlantAdvisor.php
+    ├── GroqPlantAdvisor.php
+    ├── PlantAdvisor.php
+    └── PlantEligibilityService.php
+database/
+├── factories/
+├── migrations/
+└── seeders/
+resources/views/
+├── admin/
+├── advice/
+├── auth/
+├── components/
+└── layouts/
+tests/
+├── Feature/
+└── Unit/
 ```
 
-`GroqPlantAdvisor.php` n’entre dans cette arborescence qu’après validation de la phase dédiée.
+Les dossiers `Actions`, `Contracts` et `DTOs` sont exclus du MVP. La validation de la réponse IA appartient à `GeneratePlantAdviceJob`.
 
 ## Action items
 
@@ -229,7 +149,7 @@ Résultat : le gérant administre des plantes validées sans perdre l’historiq
 - [x] Implémenter les contraintes de base, casts, soft delete et index.
 - [x] Ajouter Form Requests, policy et CRUD Blade.
 - [x] Ajouter recherche, filtres et pagination.
-- [x] Traiter le stock, l’activité et `pet_safe = null` de façon explicite.
+- [x] Traiter le stock et l’activité de façon explicite ; reporter `pet_safe` après le MVP.
 - [x] Tester création, modification, désactivation, suppression logique et autorisations.
 
 Validation :
@@ -279,7 +199,7 @@ Le découpage opérationnel validé pour la suite est : phase 6 queue et `FakePl
 Résultat : Laravel produit une liste déterministe de candidates éligibles avant tout conseiller.
 
 - [ ] Implémenter `PlantEligibilityService`.
-- [ ] Couvrir activité, stock, environnement, exposition, espace, entretien et sécurité animale.
+- [x] Couvrir activité, stock, environnement, exposition unique, espace et entretien.
 - [ ] Centraliser les seuils d’espace dans la configuration.
 - [ ] Tester les combinaisons limites, les valeurs inconnues et la liste vide.
 
@@ -295,12 +215,12 @@ Critère de sortie : chaque règle BR-01 à BR-07 dispose d’au moins un test p
 
 ### Phase 8 : Valider et persister les recommandations
 
-Résultat : Laravel revalide la sortie du conseiller et conserve uniquement les recommandations sûres avec leurs snapshots.
+Résultat : Laravel revalide la sortie du conseiller dans le Job et conserve uniquement les recommandations sûres avec le snapshot de quantité.
 
-- [x] Créer la migration et le modèle des recommandations avec snapshots et contraintes uniques.
-- [x] Implémenter `AdviceResultValidator`.
+- [x] Créer la migration et le modèle des recommandations avec snapshot de quantité et contrainte unique.
+- [x] Intégrer la validation défensive directement dans `GeneratePlantAdviceJob`.
 - [x] Orchestrer le Job avec transitions, retries bornés, idempotence et transaction finale courte.
-- [x] Produire un résultat COMPLETED vide sans appeler le fake lorsqu’aucune candidate n’existe.
+- [x] Produire `FAILED` avec le message `NO_ELIGIBLE_PLANTS` sans appeler le fake lorsqu’aucune candidate n’existe.
 - [x] Rejeter les identifiants inconnus, doublons, plantes inactives ou en rupture et limiter les résultats.
 
 Validation :
@@ -309,7 +229,6 @@ Validation :
 php artisan migrate:fresh --seed
 php artisan test tests/Unit/Advice
 php artisan test tests/Feature/Jobs/GeneratePlantAdviceJobTest.php
-php artisan test --filter=AdviceResultValidator
 php artisan queue:work --once
 vendor/bin/pint --test
 ```
@@ -321,8 +240,8 @@ Critère de sortie : les tests écartent un ID inventé, une rupture, une plante
 Résultat : le visiteur consulte le résultat et le gérant audite les demandes.
 
 - [x] Afficher les quatre états sur la page publique.
-- [x] Afficher résumé, raisons, entretien, avertissement, snapshot et stock courant.
-- [x] Ajouter tableau de bord, historique filtrable et détail d’administration.
+- [x] Afficher résumé, raisons, entretien et snapshot de quantité.
+- [x] Ajouter un accueil d’administration, un historique simple et un détail de demande.
 - [x] Vérifier l’échappement des textes issus du conseiller.
 - [x] Vérifier l’accessibilité clavier et la présentation mobile.
 
@@ -370,7 +289,7 @@ Résultat : `GroqPlantAdvisor` remplace le fake par configuration sans modifier 
 
 - [x] Utiliser le endpoint HTTP compatible OpenAI de Groq sans SDK supplémentaire.
 - [x] Définir timeout, structured output JSON Schema et limites de payload.
-- [x] Implémenter le mapping vers les DTO existants.
+- [x] Retourner un tableau structuré que le Job revalide.
 - [x] Ajouter des tests HTTP simulés pour succès, indisponibilité, clé absente et JSON invalide.
 - [x] Garder `AI_PROVIDER=fake` en développement et dans les tests.
 - [ ] Effectuer un test manuel Groq opt-in, hors CI, avec une clé fournie localement.

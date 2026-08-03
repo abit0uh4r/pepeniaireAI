@@ -4,14 +4,14 @@ use App\Enums\Exposure;
 use App\Enums\PlantEnvironment;
 use App\Models\Plant;
 
-test('plant casts preserve enum values and exposure collections', function () {
+test('plant casts preserve simple enum values', function () {
     $plant = Plant::factory()->create([
         'environment' => PlantEnvironment::OUTDOOR,
-        'exposure' => [Exposure::SUN, Exposure::PARTIAL_SHADE],
+        'exposure' => Exposure::SUN,
     ]);
 
     expect($plant->environment)->toBe(PlantEnvironment::OUTDOOR)
-        ->and($plant->exposureValues()->all())->toBe([Exposure::SUN, Exposure::PARTIAL_SHADE]);
+        ->and($plant->exposure)->toBe(Exposure::SUN);
 });
 
 test('active and in-stock scopes only return eligible catalogue rows', function () {

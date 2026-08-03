@@ -13,12 +13,11 @@ function plantPayload(array $overrides = []): array
         'species' => 'Ficus elastica',
         'description' => 'Une plante robuste pour une pièce lumineuse.',
         'environment' => PlantEnvironment::INDOOR->value,
-        'exposure' => [Exposure::PARTIAL_SHADE->value],
+        'exposure' => Exposure::PARTIAL_SHADE->value,
         'watering_level' => Level::MEDIUM->value,
         'maintenance_level' => Level::LOW->value,
         'adult_height_cm' => 120,
         'adult_width_cm' => 60,
-        'pet_safe' => '1',
         'price' => '24.90',
         'stock_quantity' => 7,
         'is_active' => '1',
@@ -68,13 +67,13 @@ test('a manager can create a valid plant', function () {
         'is_active' => 1,
     ]);
 
-    expect(Plant::query()->first()->exposureValues()->first())->toBe(Exposure::PARTIAL_SHADE);
+    expect(Plant::query()->first()->exposure)->toBe(Exposure::PARTIAL_SHADE);
 });
 
 test('plant creation validates required characteristics and non-negative prices', function () {
     $response = $this->actingAs($this->manager)
         ->post(route('admin.plants.store'), plantPayload([
-            'exposure' => [],
+            'exposure' => 'INVALID',
             'price' => '-1.00',
         ]));
 

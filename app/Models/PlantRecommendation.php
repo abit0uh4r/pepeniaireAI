@@ -15,7 +15,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'plant_id',
     'rank',
     'reason',
-    'price_snapshot',
     'stock_quantity_snapshot',
 ])]
 class PlantRecommendation extends Model
@@ -27,7 +26,6 @@ class PlantRecommendation extends Model
     {
         return [
             'rank' => 'integer',
-            'price_snapshot' => 'decimal:2',
             'stock_quantity_snapshot' => 'integer',
         ];
     }

@@ -24,7 +24,6 @@ function advicePayload(array $overrides = []): array
         'exposure' => Exposure::PARTIAL_SHADE->value,
         'space_size' => SpaceSize::MEDIUM->value,
         'maintenance_availability' => Level::LOW->value,
-        'has_pets' => '0',
         'free_text_description' => 'Je cherche une plante facile pour mon salon lumineux.',
         'consent' => '1',
     ], $overrides);
@@ -49,15 +48,13 @@ test('a visitor can submit a valid advice request with a secure public token', f
     expect($request->status)->toBe(AdviceRequestStatus::PENDING)
         ->and($request->public_token)->toMatch('/^[a-f0-9]{64}$/')
         ->and($request->public_token)->not->toBe((string) $request->id)
-        ->and($request->customer_email)->toBe('camille@example.test')
-        ->and($request->has_pets)->toBeFalse();
+        ->and($request->customer_email)->toBe('camille@example.test');
 });
 
 test('optional visitor contact details can be omitted', function () {
     $response = $this->post(route('advice.store'), advicePayload([
         'customer_name' => null,
         'customer_email' => null,
-        'has_pets' => '1',
     ]));
 
     $response->assertRedirect();
@@ -65,8 +62,7 @@ test('optional visitor contact details can be omitted', function () {
     $request = AdviceRequest::query()->sole();
 
     expect($request->customer_name)->toBeNull()
-        ->and($request->customer_email)->toBeNull()
-        ->and($request->has_pets)->toBeTrue();
+        ->and($request->customer_email)->toBeNull();
 });
 
 test('advice request validation rejects unsupported choices and missing consent', function () {
@@ -145,7 +141,6 @@ test('a completed request displays persisted recommendations and escapes advisor
         'advice_request_id' => $adviceRequest,
         'plant_id' => $plant,
         'reason' => '<img src=x onerror=alert(1)> Très adaptée.',
-        'price_snapshot' => '29.90',
         'stock_quantity_snapshot' => 5,
     ]);
 
@@ -153,7 +148,6 @@ test('a completed request displays persisted recommendations and escapes advisor
         ->assertOk()
         ->assertSee('Votre sélection est prête.')
         ->assertSee('Calathea test')
-        ->assertSee('29,90 MAD')
         ->assertSee('Stock observé')
         ->assertSee('&lt;script&gt;alert(&quot;summary&quot;)&lt;/script&gt;', escape: false)
         ->assertDontSee('<script>', escape: false)

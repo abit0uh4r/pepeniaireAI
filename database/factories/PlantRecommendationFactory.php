@@ -21,7 +21,6 @@ class PlantRecommendationFactory extends Factory
             'plant_id' => Plant::factory(),
             'rank' => 1,
             'reason' => fake()->sentence(),
-            'price_snapshot' => '25.00',
             'stock_quantity_snapshot' => 5,
         ];
     }

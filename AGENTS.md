@@ -31,7 +31,7 @@ Documenter toute nouvelle décision structurante dans `docs/technical-decisions.
 - Docker Compose pour l’environnement local ;
 - GitHub Actions pour l’intégration continue ;
 - `FakePlantAdvisor` par défaut en développement et dans les tests ;
-- `GroqPlantAdvisor` dans une phase ultérieure validée séparément.
+- `GroqPlantAdvisor` disponible uniquement par activation explicite ;
 
 ## Choix interdits
 
@@ -45,10 +45,9 @@ Ne pas laisser un fournisseur IA écrire dans la base, modifier le stock, choisi
 - Les Form Requests valident et normalisent les entrées HTTP.
 - Les Policies et les middlewares contrôlent l’accès à l’administration.
 - `PlantEligibilityService` applique toutes les contraintes déterministes avant l’appel au conseiller.
-- `PlantAdvisor` constitue le seul contrat applicatif avec un fournisseur IA.
-- Les DTO transportent le contexte envoyé au conseiller et son résultat structuré.
-- `AdviceResultValidator` revalide la structure, les identifiants candidats, l’état actif, le stock, les doublons et la limite de résultats.
-- Le Job orchestre le traitement. Il n’embarque ni requête HTTP, ni rendu, ni logique de sélection détaillée.
+- `PlantAdvisor`, `FakePlantAdvisor`, `GroqPlantAdvisor` et `PlantEligibilityService` résident directement dans `app/Services`.
+- Ne pas créer de dossiers `Actions`, `Contracts` ou `DTOs` pour le MVP.
+- Le Job orchestre le traitement et revalide lui-même la structure IA, les identifiants candidats, l’état actif, le stock, les doublons et la limite de résultats.
 - Une transaction courte persiste le résultat final. Aucun appel externe ne s’exécute dans une transaction SQL.
 - Les modèles Eloquent décrivent les relations, casts et scopes simples. Ils ne deviennent pas des services globaux.
 
@@ -56,7 +55,7 @@ Le flux métier obligatoire reste :
 
 `requête validée → demande PENDING → Job → préfiltrage Laravel → PlantAdvisor → validation Laravel → transaction → COMPLETED`
 
-Une erreur terminale produit `FAILED`. Une absence de candidate produit un résultat `COMPLETED` vide sans appel au conseiller.
+Une erreur terminale produit `FAILED`. Une absence de candidate produit `FAILED` avec le message public correspondant à `NO_ELIGIBLE_PLANTS`, sans appel au conseiller.
 
 ## Source de vérité et intégrité
 
@@ -66,7 +65,7 @@ Une erreur terminale produit `FAILED`. Une absence de candidate produit un résu
 - Recharger et verrouiller les données utiles avant la persistance finale.
 - Vérifier une seconde fois l’activité, l’éligibilité et `stock_quantity > 0`.
 - Dédupliquer les recommandations et appliquer la limite configurée.
-- Conserver le stock et le prix observés dans des snapshots.
+- Conserver uniquement la quantité observée dans un snapshot pour le MVP.
 - Protéger l’historique avec les clés étrangères, les contraintes uniques et la suppression logique des plantes.
 - Rendre le Job rejouable sans créer de doublon.
 
@@ -87,8 +86,8 @@ Une erreur terminale produit `FAILED`. Une absence de candidate produit un résu
 - Écrire des migrations réversibles et exécutables sur une base vide MySQL 8.4.
 - Ajouter les clés étrangères, contraintes uniques, valeurs par défaut et index utiles dans les migrations.
 - Utiliser des colonnes `VARCHAR` associées à des backed enums PHP pour les états et niveaux métier.
-- Stocker les expositions multiples dans une colonne JSON castée et validée par Laravel.
-- Traiter `pet_safe = null` comme « sécurité inconnue » ; une demande avec animal exclut cette plante.
+- Stocker une exposition unique dans une colonne `ENUM` simple, castée vers `Exposure`.
+- Reporter `pet_safe` et la règle BR-06 après le MVP.
 - Utiliser des montants décimaux. Ne pas employer de nombres flottants pour les prix.
 - Éviter les suppressions en cascade qui effaceraient l’historique métier.
 - Ne créer ni table `sessions` ni table `cache` tant que les drivers restent sur fichiers.
@@ -118,7 +117,7 @@ Une erreur terminale produit `FAILED`. Une absence de candidate produit un résu
 
 - Utiliser la connexion `database`.
 - Définir un timeout et un nombre de tentatives borné pour chaque Job.
-- Enregistrer un code d’échec stable et un message interne nettoyé.
+- Persister uniquement un `failure_message` nettoyé. Les deux causes applicatives sont `NO_ELIGIBLE_PLANTS` et `AI_ERROR`.
 - Prévoir les exécutions concurrentes, retries et redémarrages du worker.
 - Utiliser les contraintes SQL comme dernier rempart contre les doublons.
 - Garder la page publique indépendante de l’état du worker : elle affiche PENDING, PROCESSING, COMPLETED ou FAILED.
@@ -140,8 +139,8 @@ Une erreur terminale produit `FAILED`. Une absence de candidate produit un résu
 - Utiliser les factories pour préparer les données.
 - Utiliser `Queue::fake()` pour tester le dispatch et le vrai Job avec `FakePlantAdvisor` pour tester l’intégration.
 - Interdire tout appel réseau dans la suite de tests.
-- Couvrir au minimum : plante inactive, stock nul, animal et sécurité inconnue, identifiant inventé, doublon, dépassement de limite, absence de candidate, sortie invalide, retry et exécution concurrente.
-- Vérifier séparément le snapshot historique et le stock courant.
+- Couvrir au minimum : plante inactive, stock nul, identifiant inventé, doublon, dépassement de limite, absence de candidate, sortie invalide, retry et exécution concurrente.
+- Vérifier le snapshot de quantité sans comparaison avec le stock courant dans l’interface MVP.
 
 ## Commandes de contrôle
 

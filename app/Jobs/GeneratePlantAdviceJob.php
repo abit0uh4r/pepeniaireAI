@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Contracts\AI\PlantAdvisor;
-use App\DTOs\Advice\AdviceContext;
+use App\Enums\AdviceFailure;
 use App\Enums\AdviceRequestStatus;
 use App\Models\AdviceRequest;
 use App\Models\Plant;
 use App\Models\PlantRecommendation;
-use App\Services\Advice\AdviceResultValidator;
-use App\Services\Plants\PlantEligibilityService;
+use App\Services\PlantAdvisor;
+use App\Services\PlantEligibilityService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 use Throwable;
 
 final class GeneratePlantAdviceJob implements ShouldQueue
@@ -28,13 +28,9 @@ final class GeneratePlantAdviceJob implements ShouldQueue
 
     public int $timeout = 90;
 
-    public function __construct(
-        public int $adviceRequestId,
-    ) {}
+    public function __construct(public int $adviceRequestId) {}
 
-    /**
-     * @return list<int>
-     */
+    /** @return list<int> */
     public function backoff(): array
     {
         return [10, 30];
@@ -43,40 +39,30 @@ final class GeneratePlantAdviceJob implements ShouldQueue
     public function handle(
         PlantAdvisor $plantAdvisor,
         PlantEligibilityService $eligibilityService,
-        AdviceResultValidator $resultValidator,
     ): void {
         $adviceRequest = AdviceRequest::query()->find($this->adviceRequestId);
 
-        if ($adviceRequest === null || $adviceRequest->status !== AdviceRequestStatus::PENDING) {
+        if ($adviceRequest === null || $adviceRequest->status->isTerminal()) {
             return;
         }
 
-        $claimed = AdviceRequest::query()
-            ->whereKey($adviceRequest->getKey())
-            ->where('status', AdviceRequestStatus::PENDING->value)
-            ->update([
-                'status' => AdviceRequestStatus::PROCESSING->value,
-                'processing_started_at' => now(),
-            ]);
-
-        if ($claimed !== 1) {
+        if ($adviceRequest->status === AdviceRequestStatus::PENDING && ! $this->claim($adviceRequest)) {
             return;
         }
 
         $adviceRequest->refresh();
-        $context = AdviceContext::fromRequest($adviceRequest);
-        $candidatePlantIds = $eligibilityService->eligiblePlantIds($context);
+        $candidatePlants = $eligibilityService->eligiblePlants($adviceRequest);
 
-        if ($candidatePlantIds === []) {
-            $this->completeWithoutRecommendations($adviceRequest);
+        if ($candidatePlants->isEmpty()) {
+            $this->failRequest($adviceRequest, AdviceFailure::NO_ELIGIBLE_PLANTS);
 
             return;
         }
 
-        $result = $plantAdvisor->advise($context, $candidatePlantIds);
-        $validatedResult = $resultValidator->validate($result, $candidatePlantIds);
+        $result = $plantAdvisor->advise($this->advisorContext($adviceRequest), $candidatePlants);
+        $validatedResult = $this->validateAdvisorResult($result, $candidatePlants->modelKeys());
 
-        DB::transaction(function () use ($validatedResult): void {
+        DB::transaction(function () use ($eligibilityService, $validatedResult): void {
             $adviceRequest = AdviceRequest::query()
                 ->whereKey($this->adviceRequestId)
                 ->lockForUpdate()
@@ -86,19 +72,16 @@ final class GeneratePlantAdviceJob implements ShouldQueue
                 return;
             }
 
-            $recommendationIds = array_map(
-                static fn ($recommendation): int => $recommendation->plantId,
-                $validatedResult->recommendations,
-            );
+            $plantIds = array_column($validatedResult['recommendations'], 'plant_id');
             $plants = Plant::query()
-                ->whereKey($recommendationIds)
+                ->whereKey($plantIds)
                 ->lockForUpdate()
                 ->get()
-                ->filter(fn (Plant $plant): bool => $plant->is_active && $plant->stock_quantity > 0)
+                ->filter(fn (Plant $plant): bool => $eligibilityService->isEligible($plant, $adviceRequest))
                 ->keyBy(fn (Plant $plant): int => $plant->getKey());
 
-            foreach ($validatedResult->recommendations as $recommendation) {
-                $plant = $plants->get($recommendation->plantId);
+            foreach ($validatedResult['recommendations'] as $recommendation) {
+                $plant = $plants->get($recommendation['plant_id']);
 
                 if ($plant === null) {
                     continue;
@@ -107,48 +90,125 @@ final class GeneratePlantAdviceJob implements ShouldQueue
                 PlantRecommendation::query()->create([
                     'advice_request_id' => $adviceRequest->getKey(),
                     'plant_id' => $plant->getKey(),
-                    'rank' => $recommendation->rank,
-                    'reason' => $recommendation->reason,
-                    'price_snapshot' => $plant->price,
+                    'rank' => $recommendation['rank'],
+                    'reason' => $recommendation['reason'],
                     'stock_quantity_snapshot' => $plant->stock_quantity,
                 ]);
             }
 
             $adviceRequest->update([
                 'status' => AdviceRequestStatus::COMPLETED->value,
-                'space_summary' => $validatedResult->spaceSummary,
-                'general_advice' => $validatedResult->generalAdvice,
-                'raw_ai_response' => $validatedResult->toArray(),
+                'space_summary' => $validatedResult['space_summary'],
+                'general_advice' => $validatedResult['general_advice'],
+                'failure_message' => null,
                 'processed_at' => now(),
             ]);
         });
     }
 
-    private function completeWithoutRecommendations(AdviceRequest $adviceRequest): void
-    {
-        $adviceRequest->update([
-            'status' => AdviceRequestStatus::COMPLETED->value,
-            'space_summary' => 'Aucune plante ne correspond aux critères indiqués.',
-            'general_advice' => null,
-            'raw_ai_response' => [
-                'space_summary' => 'Aucune plante ne correspond aux critères indiqués.',
-                'general_advice' => '',
-                'recommendations' => [],
-            ],
-            'processed_at' => now(),
-        ]);
-    }
-
     public function failed(?Throwable $exception): void
     {
-        AdviceRequest::query()
-            ->whereKey($this->adviceRequestId)
-            ->where('status', AdviceRequestStatus::PROCESSING->value)
+        $adviceRequest = AdviceRequest::query()->find($this->adviceRequestId);
+
+        if ($adviceRequest !== null && $adviceRequest->status === AdviceRequestStatus::PROCESSING) {
+            $this->failRequest($adviceRequest, AdviceFailure::AI_ERROR);
+        }
+    }
+
+    private function claim(AdviceRequest $adviceRequest): bool
+    {
+        return AdviceRequest::query()
+            ->whereKey($adviceRequest->getKey())
+            ->where('status', AdviceRequestStatus::PENDING->value)
             ->update([
-                'status' => AdviceRequestStatus::FAILED->value,
-                'failure_code' => 'ADVISOR_FAILED',
-                'failure_message' => 'Le traitement du conseil a échoué.',
-                'processed_at' => now(),
-            ]);
+                'status' => AdviceRequestStatus::PROCESSING->value,
+                'processing_started_at' => now(),
+            ]) === 1;
+    }
+
+    /**
+     * @return array{environment: string, exposure: string, space_size: string, maintenance_availability: string, free_text_description: string}
+     */
+    private function advisorContext(AdviceRequest $adviceRequest): array
+    {
+        return [
+            'environment' => $adviceRequest->environment->value,
+            'exposure' => $adviceRequest->exposure->value,
+            'space_size' => $adviceRequest->space_size->value,
+            'maintenance_availability' => $adviceRequest->maintenance_availability->value,
+            'free_text_description' => $adviceRequest->free_text_description,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $result
+     * @param  list<int|string>  $candidatePlantIds
+     * @return array{space_summary: string, general_advice: string, recommendations: list<array{plant_id: int, rank: int, reason: string}>}
+     */
+    private function validateAdvisorResult(array $result, array $candidatePlantIds): array
+    {
+        if (! is_string($result['space_summary'] ?? null)
+            || ! is_string($result['general_advice'] ?? null)
+            || ! is_array($result['recommendations'] ?? null)) {
+            throw new RuntimeException('La réponse du conseiller est invalide.');
+        }
+
+        $candidatePlantIds = array_map(static fn (int|string $id): int => (int) $id, $candidatePlantIds);
+        $maxRecommendations = max(1, (int) config('advice.max_recommendations', 3));
+        $seenPlantIds = [];
+        $recommendations = [];
+
+        foreach ($result['recommendations'] as $recommendation) {
+            if (! is_array($recommendation)
+                || ! is_int($recommendation['plant_id'] ?? null)
+                || ! is_int($recommendation['rank'] ?? null)
+                || ! is_string($recommendation['reason'] ?? null)) {
+                continue;
+            }
+
+            $plantId = $recommendation['plant_id'];
+            $rank = $recommendation['rank'];
+            $reason = trim($recommendation['reason']);
+
+            if (! in_array($plantId, $candidatePlantIds, true)
+                || in_array($plantId, $seenPlantIds, true)
+                || $rank < 1
+                || $rank > $maxRecommendations
+                || $reason === '') {
+                continue;
+            }
+
+            $seenPlantIds[] = $plantId;
+            $recommendations[] = [
+                'plant_id' => $plantId,
+                'rank' => $rank,
+                'reason' => mb_substr($reason, 0, 2000),
+            ];
+
+            if (count($recommendations) >= $maxRecommendations) {
+                break;
+            }
+        }
+
+        if ($recommendations === []) {
+            throw new RuntimeException('La réponse du conseiller ne contient aucune recommandation valide.');
+        }
+
+        usort($recommendations, static fn (array $left, array $right): int => $left['rank'] <=> $right['rank']);
+
+        return [
+            'space_summary' => mb_substr(trim($result['space_summary']), 0, 5000),
+            'general_advice' => mb_substr(trim($result['general_advice']), 0, 10000),
+            'recommendations' => $recommendations,
+        ];
+    }
+
+    private function failRequest(AdviceRequest $adviceRequest, AdviceFailure $failure): void
+    {
+        $adviceRequest->update([
+            'status' => AdviceRequestStatus::FAILED->value,
+            'failure_message' => $failure->message(),
+            'processed_at' => now(),
+        ]);
     }
 }

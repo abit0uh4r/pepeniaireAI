@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use App\Contracts\AI\PlantAdvisor;
-use App\Services\AI\FakePlantAdvisor;
-use App\Services\AI\GroqPlantAdvisor;
+use App\Services\FakePlantAdvisor;
+use App\Services\GroqPlantAdvisor;
+use App\Services\PlantAdvisor;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
 

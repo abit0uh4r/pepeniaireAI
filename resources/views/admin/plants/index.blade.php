@@ -74,7 +74,7 @@
                                     <div class="rounded-2xl bg-[#f5f7f1] p-3"><dt class="text-xs text-slate-500">Stock</dt><dd class="mt-1 font-semibold {{ $plant->stock_quantity > 0 ? 'text-emerald-800' : 'text-amber-700' }}">{{ $plant->stock_quantity }} unité(s)</dd></div>
                                     <div class="rounded-2xl bg-[#f5f7f1] p-3"><dt class="text-xs text-slate-500">Prix</dt><dd class="mt-1 font-semibold text-slate-900">{{ \App\Support\MoneyFormatter::formatMad($plant->price) }}</dd></div>
                                     <div class="rounded-2xl bg-[#f5f7f1] p-3"><dt class="text-xs text-slate-500">Environnement</dt><dd class="mt-1 font-semibold text-slate-900">{{ $plant->environment->label() }}</dd></div>
-                                    <div class="rounded-2xl bg-[#f5f7f1] p-3"><dt class="text-xs text-slate-500">Animaux</dt><dd class="mt-1 font-semibold text-slate-900">{{ $plant->pet_safe === null ? 'Inconnu' : ($plant->pet_safe ? 'Sûre' : 'À éviter') }}</dd></div>
+                                    <div class="rounded-2xl bg-[#f5f7f1] p-3"><dt class="text-xs text-slate-500">Exposition</dt><dd class="mt-1 font-semibold text-slate-900">{{ $plant->exposure->label() }}</dd></div>
                                 </dl>
                                 <div class="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
                                     <a href="{{ route('admin.plants.edit', $plant) }}" class="text-sm font-semibold text-emerald-800 hover:text-emerald-950">Modifier <span aria-hidden="true">→</span></a>

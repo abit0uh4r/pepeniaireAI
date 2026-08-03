@@ -52,7 +52,7 @@ test('the advice request history uses the project pagination view', function () 
         ->assertSee('Aller à la page 2');
 });
 
-test('a manager can audit recommendation snapshots separately from current stock', function () {
+test('a manager can audit the persisted quantity snapshot', function () {
     $manager = User::factory()->create();
     $plant = Plant::factory()->create([
         'name' => 'Ficus audité',
@@ -68,7 +68,6 @@ test('a manager can audit recommendation snapshots separately from current stock
         'advice_request_id' => $adviceRequest,
         'plant_id' => $plant,
         'reason' => 'Bonne adaptation.',
-        'price_snapshot' => '39.00',
         'stock_quantity_snapshot' => 6,
     ]);
 
@@ -76,24 +75,20 @@ test('a manager can audit recommendation snapshots separately from current stock
         ->get(route('admin.advice-requests.show', $adviceRequest))
         ->assertOk()
         ->assertSee('Ficus audité')
-        ->assertSee('39,00 MAD')
         ->assertSee('Stock observé')
-        ->assertSee('Stock courant')
+        ->assertSee('6')
+        ->assertDontSee('Stock courant')
         ->assertSee('&lt;script&gt;alert(1)&lt;/script&gt;', escape: false)
         ->assertDontSee('<script>', escape: false);
 });
 
-test('the dashboard summarizes catalogue and advice activity', function () {
+test('the dashboard provides navigation without statistics', function () {
     $manager = User::factory()->create();
-    Plant::factory()->create(['is_active' => true, 'stock_quantity' => 3]);
-    Plant::factory()->create(['is_active' => false, 'stock_quantity' => 5]);
-    AdviceRequest::factory()->create(['status' => AdviceRequestStatus::PROCESSING]);
-    AdviceRequest::factory()->completed()->create();
 
     $this->actingAs($manager)
         ->get(route('admin.dashboard'))
         ->assertOk()
-        ->assertSee('Le jardin, en un regard.')
-        ->assertSee('À surveiller')
-        ->assertSee('Conseils rendus');
+        ->assertSee('Gérer les plantes')
+        ->assertSee('Consulter les demandes')
+        ->assertDontSee('Conseils rendus');
 });

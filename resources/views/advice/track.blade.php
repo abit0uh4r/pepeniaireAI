@@ -114,31 +114,21 @@
                                         </svg>
                                     </div>
                                     <div class="p-6 sm:p-8">
-                                        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                        <div>
                                             <div>
                                                 <p class="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">{{ $plant?->species ?? 'Fiche archivée' }}</p>
                                                 <h3 class="mt-1 font-display text-3xl font-semibold text-emerald-950">{{ $plant?->name ?? 'Plante du catalogue' }}</h3>
                                             </div>
-                                            @if ($plant !== null && $plant->is_active && $plant->stock_quantity > 0)
-                                                <span class="inline-flex w-fit rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-800">Disponible aujourd’hui · {{ $plant->stock_quantity }}</span>
-                                            @else
-                                                <span class="inline-flex w-fit rounded-full bg-amber-100 px-3 py-1.5 text-xs font-bold text-amber-800">Disponibilité modifiée</span>
-                                            @endif
                                         </div>
 
                                         <blockquote class="mt-6 border-l-4 border-lime-400 pl-5 text-base leading-7 text-slate-700">« {{ $recommendation->reason }} »</blockquote>
 
                                         @if ($plant !== null)
-                                            <dl class="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                                            <dl class="mt-7 grid gap-3 sm:grid-cols-3">
                                                 <div class="rounded-2xl bg-[#f4f0e6] p-4"><dt class="text-xs font-bold uppercase tracking-wide text-slate-500">Entretien</dt><dd class="mt-2 font-semibold text-emerald-950">{{ $plant->maintenance_level->label() }}</dd></div>
                                                 <div class="rounded-2xl bg-[#f4f0e6] p-4"><dt class="text-xs font-bold uppercase tracking-wide text-slate-500">Arrosage</dt><dd class="mt-2 font-semibold text-emerald-950">{{ $plant->watering_level->label() }}</dd></div>
-                                                <div class="rounded-2xl bg-[#f4f0e6] p-4"><dt class="text-xs font-bold uppercase tracking-wide text-slate-500">Prix observé</dt><dd class="mt-2 font-semibold text-emerald-950">{{ \App\Support\MoneyFormatter::formatMad($recommendation->price_snapshot) }}</dd></div>
                                                 <div class="rounded-2xl bg-[#f4f0e6] p-4"><dt class="text-xs font-bold uppercase tracking-wide text-slate-500">Stock observé</dt><dd class="mt-2 font-semibold text-emerald-950">{{ $recommendation->stock_quantity_snapshot }} unité(s)</dd></div>
                                             </dl>
-
-                                            @if ($plant->pet_safe !== true && $adviceRequest->has_pets)
-                                                <p class="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900">Prudence avec les animaux : vérifiez la fiche et placez la plante hors de portée.</p>
-                                            @endif
                                         @endif
                                     </div>
                                 </div>
@@ -163,7 +153,7 @@
                         </div>
                         <div class="rounded-[2rem] bg-emerald-950 p-6 text-white">
                             <p class="text-xs font-bold uppercase tracking-[0.2em] text-lime-300">À retenir</p>
-                            <p class="mt-4 text-sm leading-7 text-emerald-50">Le prix et le stock observés sont des instantanés du moment du conseil. Vérifiez la disponibilité actuelle avant l’achat.</p>
+                            <p class="mt-4 text-sm leading-7 text-emerald-50">La quantité affichée correspond au stock observé au moment du conseil.</p>
                         </div>
                         <a href="{{ route('advice.create') }}" class="inline-flex w-full items-center justify-center rounded-2xl bg-lime-300 px-5 py-4 text-sm font-bold text-emerald-950 transition hover:bg-lime-200">Recommencer <span class="ml-3 text-lg">→</span></a>
                     </aside>

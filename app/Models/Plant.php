@@ -10,12 +10,10 @@ use App\Enums\PlantEnvironment;
 use Database\Factories\PlantFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Casts\AsEnumCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Collection;
 
 #[Fillable([
     'name',
@@ -27,7 +25,6 @@ use Illuminate\Support\Collection;
     'maintenance_level',
     'adult_height_cm',
     'adult_width_cm',
-    'pet_safe',
     'price',
     'stock_quantity',
     'is_active',
@@ -41,12 +38,11 @@ class Plant extends Model
     {
         return [
             'environment' => PlantEnvironment::class,
-            'exposure' => AsEnumCollection::of(Exposure::class),
+            'exposure' => Exposure::class,
             'watering_level' => Level::class,
             'maintenance_level' => Level::class,
             'adult_height_cm' => 'integer',
             'adult_width_cm' => 'integer',
-            'pet_safe' => 'boolean',
             'price' => 'decimal:2',
             'stock_quantity' => 'integer',
             'is_active' => 'boolean',
@@ -75,14 +71,6 @@ class Plant extends Model
             $query->where('name', 'like', "%{$search}%")
                 ->orWhere('species', 'like', "%{$search}%");
         });
-    }
-
-    /**
-     * @return Collection<int, Exposure>
-     */
-    public function exposureValues(): Collection
-    {
-        return $this->exposure ?? collect();
     }
 
     /** @return HasMany<PlantRecommendation, $this> */

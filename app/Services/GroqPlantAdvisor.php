@@ -2,13 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Services\AI;
+namespace App\Services;
 
-use App\Contracts\AI\PlantAdvisor;
-use App\DTOs\Advice\AdviceContext;
-use App\DTOs\Advice\AdviceResult;
-use App\DTOs\Advice\PlantRecommendationData;
 use App\Models\Plant;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use JsonException;
@@ -25,15 +22,17 @@ final class GroqPlantAdvisor implements PlantAdvisor
     ) {}
 
     /**
-     * @param  list<int>  $candidatePlantIds
+     * @param  array{environment: string, exposure: string, space_size: string, maintenance_availability: string, free_text_description: string}  $context
+     * @param  Collection<int, Plant>  $candidatePlants
+     * @return array<string, mixed>
      */
-    public function advise(AdviceContext $context, array $candidatePlantIds): AdviceResult
+    public function advise(array $context, Collection $candidatePlants): array
     {
         if (trim($this->apiKey) === '') {
             throw new RuntimeException('Le fournisseur Groq n’est pas configuré.');
         }
 
-        $payload = [
+        $response = $this->httpClient()->post('/chat/completions', [
             'model' => $this->model,
             'messages' => [
                 [
@@ -43,8 +42,8 @@ final class GroqPlantAdvisor implements PlantAdvisor
                 [
                     'role' => 'user',
                     'content' => json_encode([
-                        'request' => $context->toAdvisorPayload(),
-                        'candidate_plants' => $this->candidatePlants($candidatePlantIds),
+                        'request' => $context,
+                        'candidate_plants' => $this->candidatePlants($candidatePlants),
                     ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
                 ],
             ],
@@ -78,9 +77,7 @@ final class GroqPlantAdvisor implements PlantAdvisor
                 ],
             ],
             'max_tokens' => $this->maxTokens,
-        ];
-
-        $response = $this->httpClient()->post('/chat/completions', $payload);
+        ]);
 
         if ($response->failed()) {
             throw new RuntimeException('Le fournisseur Groq a refusé la demande.');
@@ -98,27 +95,31 @@ final class GroqPlantAdvisor implements PlantAdvisor
             throw new RuntimeException('La réponse Groq n’est pas un JSON valide.', previous: $exception);
         }
 
-        return $this->toAdviceResult($decoded);
+        if (! is_array($decoded)) {
+            throw new RuntimeException('La réponse Groq n’est pas un objet JSON.');
+        }
+
+        return $decoded;
     }
 
-    /** @return list<array<string, mixed>> */
-    private function candidatePlants(array $candidatePlantIds): array
+    /**
+     * @param  Collection<int, Plant>  $candidatePlants
+     * @return list<array<string, mixed>>
+     */
+    private function candidatePlants(Collection $candidatePlants): array
     {
-        return Plant::query()
-            ->whereKey(array_values(array_unique($candidatePlantIds)))
-            ->get()
+        return $candidatePlants
             ->map(static fn (Plant $plant): array => [
                 'id' => $plant->getKey(),
                 'name' => $plant->name,
                 'species' => $plant->species,
                 'description' => $plant->description,
                 'environment' => $plant->environment->value,
-                'exposure' => $plant->exposureValues()->map(static fn ($exposure): string => $exposure->value)->values()->all(),
+                'exposure' => $plant->exposure->value,
                 'watering_level' => $plant->watering_level->value,
                 'maintenance_level' => $plant->maintenance_level->value,
                 'adult_height_cm' => $plant->adult_height_cm,
                 'adult_width_cm' => $plant->adult_width_cm,
-                'pet_safe' => $plant->pet_safe,
             ])
             ->values()
             ->all();
@@ -131,38 +132,5 @@ final class GroqPlantAdvisor implements PlantAdvisor
             ->withToken($this->apiKey)
             ->timeout($this->timeout)
             ->baseUrl(rtrim($this->baseUrl, '/'));
-    }
-
-    private function toAdviceResult(mixed $decoded): AdviceResult
-    {
-        if (! is_array($decoded)
-            || ! is_string($decoded['space_summary'] ?? null)
-            || ! is_string($decoded['general_advice'] ?? null)
-            || ! is_array($decoded['recommendations'] ?? null)) {
-            throw new RuntimeException('La réponse Groq ne respecte pas le schéma attendu.');
-        }
-
-        $recommendations = [];
-
-        foreach ($decoded['recommendations'] as $recommendation) {
-            if (! is_array($recommendation)
-                || ! is_int($recommendation['plant_id'] ?? null)
-                || ! is_int($recommendation['rank'] ?? null)
-                || ! is_string($recommendation['reason'] ?? null)) {
-                throw new RuntimeException('La réponse Groq contient une recommandation invalide.');
-            }
-
-            $recommendations[] = new PlantRecommendationData(
-                plantId: $recommendation['plant_id'],
-                rank: $recommendation['rank'],
-                reason: $recommendation['reason'],
-            );
-        }
-
-        return new AdviceResult(
-            spaceSummary: $decoded['space_summary'],
-            generalAdvice: $decoded['general_advice'],
-            recommendations: $recommendations,
-        );
     }
 }

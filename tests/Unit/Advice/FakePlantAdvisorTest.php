@@ -1,23 +1,23 @@
 <?php
 
-use App\Contracts\AI\PlantAdvisor;
-use App\DTOs\Advice\AdviceContext;
 use App\Enums\Exposure;
 use App\Enums\Level;
 use App\Enums\PlantEnvironment;
 use App\Enums\SpaceSize;
-use App\Services\AI\FakePlantAdvisor;
+use App\Models\Plant;
+use App\Services\FakePlantAdvisor;
+use App\Services\PlantAdvisor;
+use Illuminate\Database\Eloquent\Collection;
 
-function fakeAdviceContext(bool $hasPets = false): AdviceContext
+function fakeAdviceContext(): array
 {
-    return new AdviceContext(
-        environment: PlantEnvironment::INDOOR,
-        exposure: Exposure::PARTIAL_SHADE,
-        spaceSize: SpaceSize::MEDIUM,
-        maintenanceAvailability: Level::LOW,
-        hasPets: $hasPets,
-        freeTextDescription: 'Une description de contexte suffisamment longue pour le fake.',
-    );
+    return [
+        'environment' => PlantEnvironment::INDOOR->value,
+        'exposure' => Exposure::PARTIAL_SHADE->value,
+        'space_size' => SpaceSize::MEDIUM->value,
+        'maintenance_availability' => Level::LOW->value,
+        'free_text_description' => 'Une description de contexte suffisamment longue pour le fake.',
+    ];
 }
 
 test('the fake advisor is bound by default without network access', function () {
@@ -26,26 +26,29 @@ test('the fake advisor is bound by default without network access', function () 
 
 test('the fake advisor is deterministic and only ranks supplied candidates', function () {
     $advisor = app(PlantAdvisor::class);
-    $context = fakeAdviceContext();
+    $plants = new Collection([
+        Plant::factory()->create(),
+        Plant::factory()->create(),
+    ]);
 
-    $first = $advisor->advise($context, [12, 4, 12, 0, -1]);
-    $second = $advisor->advise($context, [12, 4, 12, 0, -1]);
+    $first = $advisor->advise(fakeAdviceContext(), $plants);
+    $second = $advisor->advise(fakeAdviceContext(), $plants);
 
-    expect($first->toArray())->toBe($second->toArray())
-        ->and($first->toArray()['recommendations'])->toHaveCount(2)
-        ->and(array_column($first->toArray()['recommendations'], 'plant_id'))->toBe([12, 4]);
+    expect($first)->toBe($second)
+        ->and($first['recommendations'])->toHaveCount(2)
+        ->and(array_column($first['recommendations'], 'plant_id'))->toBe($plants->modelKeys());
 });
 
-test('the advice context excludes visitor contact details from the advisor payload', function () {
-    $payload = fakeAdviceContext(hasPets: true)->toAdvisorPayload();
+test('the advisor context excludes visitor contact details and deferred pet criteria', function () {
+    $payload = fakeAdviceContext();
 
     expect($payload)->toHaveKeys([
         'environment',
         'exposure',
         'space_size',
         'maintenance_availability',
-        'has_pets',
         'free_text_description',
     ])->and($payload)->not->toHaveKey('customer_name')
-        ->and($payload)->not->toHaveKey('customer_email');
+        ->and($payload)->not->toHaveKey('customer_email')
+        ->and($payload)->not->toHaveKey('has_pets');
 });

@@ -151,7 +151,7 @@ docker compose exec app php artisan db:seed --class=ManagerSeeder
 
 Le catalogue est accessible uniquement au gérant connecté et vérifié depuis `/admin/plants`.
 
-Le formulaire permet de renseigner le nom, l’espèce, l’environnement, les expositions, les niveaux d’arrosage et d’entretien, les dimensions adultes, la sécurité animale, le prix et le stock. Les fiches peuvent être recherchées, filtrées, modifiées, désactivées ou archivées par suppression logique.
+Le formulaire permet de renseigner le nom, l’espèce, l’environnement, une exposition, les niveaux d’arrosage et d’entretien, les dimensions adultes, le prix et le stock. Les fiches peuvent être recherchées, filtrées, modifiées, désactivées ou archivées par suppression logique.
 
 Pour initialiser le catalogue de démonstration (23 plantes variées) :
 
@@ -163,11 +163,11 @@ Les plantes inactives ou en rupture restent dans la base mais ne seront pas cand
 
 ## Demande de conseil publique
 
-Le formulaire public est disponible sur `/conseil`, sans création de compte. Il collecte l’environnement, l’exposition, la taille de l’espace, l’entretien disponible, la présence d’animaux et une description libre. Le nom et l’email sont facultatifs.
+Le formulaire public est disponible sur `/conseil`, sans création de compte. Il collecte l’environnement, l’exposition, la taille de l’espace, l’entretien disponible et une description libre. Le nom et l’email sont facultatifs.
 
 Une soumission valide crée une demande au statut `PENDING` et un token public aléatoire de 64 caractères hexadécimaux, puis redirige vers `/conseil/suivi/{token}`. Cette page affiche l’état courant et interroge le point `/conseil/suivi/{token}/status` avec un polling limité, sans exposer les données personnelles de la demande. Le traitement asynchrone utilise le fake par défaut ; Groq est une option explicite.
 
-Lorsque le traitement est terminé, la page présente le résumé, les recommandations validées, les raisons, les informations d’entretien, le prix et le stock observés ainsi que le stock courant. Le gérant retrouve l’historique filtrable dans `/admin/advice-requests`.
+Lorsque le traitement est terminé, la page présente le résumé, les recommandations validées, les raisons, les informations d’entretien et la quantité observée. Le gérant retrouve l’historique simple dans `/admin/advice-requests`.
 
 ## Parcours de démonstration
 
@@ -195,7 +195,7 @@ docker compose logs --tail=50 queue-worker
 
 La configuration utilise `QUEUE_CONNECTION=database`. La migration technique crée `jobs` et `failed_jobs`.
 
-Les nouvelles demandes sont placées dans la queue par `GeneratePlantAdviceJob`. Le fournisseur par défaut est `FakePlantAdvisor` (`AI_PROVIDER=fake`) : il est déterministe, n’appelle aucun réseau et ne reçoit que les candidates préfiltrées par Laravel. `PlantEligibilityService` applique les contraintes d’activité, de stock, d’environnement, d’exposition, d’espace, d’entretien et de sécurité animale. `AdviceResultValidator` écarte les sorties invalides avant la persistance transactionnelle des recommandations et de leurs snapshots de prix et de stock.
+Les nouvelles demandes sont placées dans la queue par `GeneratePlantAdviceJob`. Le fournisseur par défaut est `FakePlantAdvisor` (`AI_PROVIDER=fake`) : il est déterministe, n’appelle aucun réseau et ne reçoit que les candidates préfiltrées par Laravel. `PlantEligibilityService` applique les contraintes d’activité, de stock, d’environnement, d’exposition, d’espace et d’entretien. Le Job revalide directement la structure, les identifiants, les doublons et la limite avant la persistance transactionnelle des recommandations et du snapshot de quantité.
 
 Vérifiez le worker Docker :
 
@@ -225,18 +225,6 @@ Les réponses publiques de suivi utilisent des tokens aléatoires et sont envoy�
 ## Emails locaux
 
 Les emails locaux utilisent le driver `log`. Aucun serveur SMTP n’est requis pour démarrer le projet.
-
-PowerShell :
-
-```powershell
-Invoke-WebRequest http://localhost:8025 -UseBasicParsing
-```
-
-Bash :
-
-```bash
-curl --fail http://localhost:8025
-```
 
 ## Tests et qualité
 

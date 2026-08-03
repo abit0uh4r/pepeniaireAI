@@ -19,11 +19,10 @@
                 <section class="rounded-[2rem] border border-emerald-950/10 bg-[#fffdf8] p-6 shadow-sm sm:p-8">
                     <p class="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">Besoin exprimé</p>
                     <p class="mt-5 whitespace-pre-line text-base leading-8 text-slate-700">{{ $adviceRequest->free_text_description }}</p>
-                    <dl class="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    <dl class="mt-7 grid gap-3 sm:grid-cols-3">
                         <div class="rounded-2xl bg-[#f4f0e6] p-4"><dt class="text-xs font-bold text-slate-500">Environnement</dt><dd class="mt-2 font-semibold text-emerald-950">{{ $adviceRequest->environment->label() }}</dd></div>
                         <div class="rounded-2xl bg-[#f4f0e6] p-4"><dt class="text-xs font-bold text-slate-500">Exposition</dt><dd class="mt-2 font-semibold text-emerald-950">{{ $adviceRequest->exposure->label() }}</dd></div>
                         <div class="rounded-2xl bg-[#f4f0e6] p-4"><dt class="text-xs font-bold text-slate-500">Espace</dt><dd class="mt-2 font-semibold text-emerald-950">{{ $adviceRequest->space_size->label() }}</dd></div>
-                        <div class="rounded-2xl bg-[#f4f0e6] p-4"><dt class="text-xs font-bold text-slate-500">Animaux</dt><dd class="mt-2 font-semibold text-emerald-950">{{ $adviceRequest->has_pets ? 'Oui' : 'Non' }}</dd></div>
                     </dl>
                 </section>
 
@@ -40,21 +39,16 @@
                         @forelse ($adviceRequest->recommendations as $recommendation)
                             @php($plant = $recommendation->plant)
                             <article class="rounded-[2rem] border border-emerald-950/10 bg-[#fffdf8] p-6 shadow-sm sm:p-7">
-                                <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                                <div>
                                     <div>
                                         <p class="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">Rang {{ $recommendation->rank }}</p>
                                         <h3 class="mt-1 font-display text-3xl font-semibold text-emerald-950">{{ $plant?->name ?? 'Plante archivée' }}</h3>
                                         <p class="mt-1 text-xs italic text-slate-500">{{ $plant?->species }}</p>
                                     </div>
-                                    <span class="rounded-full px-3 py-1.5 text-xs font-bold {{ $plant && $plant->is_active && $plant->stock_quantity > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
-                                        {{ $plant && $plant->is_active && $plant->stock_quantity > 0 ? "Stock actuel : {$plant->stock_quantity}" : 'Indisponible actuellement' }}
-                                    </span>
                                 </div>
                                 <p class="mt-5 border-l-4 border-lime-400 pl-4 text-sm leading-7 text-slate-700">{{ $recommendation->reason }}</p>
-                                <dl class="mt-6 grid gap-3 sm:grid-cols-3">
-                                    <div class="rounded-2xl bg-[#f4f0e6] p-4"><dt class="text-xs text-slate-500">Prix observé</dt><dd class="mt-1 font-bold text-emerald-950">{{ \App\Support\MoneyFormatter::formatMad($recommendation->price_snapshot) }}</dd></div>
+                                <dl class="mt-6 grid gap-3">
                                     <div class="rounded-2xl bg-[#f4f0e6] p-4"><dt class="text-xs text-slate-500">Stock observé</dt><dd class="mt-1 font-bold text-emerald-950">{{ $recommendation->stock_quantity_snapshot }}</dd></div>
-                                    <div class="rounded-2xl bg-[#f4f0e6] p-4"><dt class="text-xs text-slate-500">Stock courant</dt><dd class="mt-1 font-bold text-emerald-950">{{ $plant?->stock_quantity ?? '—' }}</dd></div>
                                 </dl>
                             </article>
                         @empty
@@ -63,7 +57,7 @@
                     </section>
                 @elseif ($adviceRequest->status->value === 'FAILED')
                     <section class="rounded-[2rem] border border-rose-200 bg-rose-50 p-6 text-rose-900">
-                        <p class="text-xs font-bold uppercase tracking-[0.18em]">Échec contrôlé · {{ $adviceRequest->failure_code }}</p>
+                        <p class="text-xs font-bold uppercase tracking-[0.18em]">Échec contrôlé</p>
                         <p class="mt-3 text-sm leading-6">{{ $adviceRequest->failure_message ?: 'Le traitement n’a pas pu aboutir.' }}</p>
                     </section>
                 @else
@@ -92,7 +86,7 @@
                 </section>
                 <section class="rounded-[2rem] bg-lime-300 p-6 text-emerald-950">
                     <p class="text-xs font-bold uppercase tracking-[0.18em]">Audit</p>
-                    <p class="mt-3 text-sm leading-6">Les textes sont affichés avec l’échappement Blade. Les prix et stocks observés restent séparés des valeurs courantes.</p>
+                    <p class="mt-3 text-sm leading-6">Les textes sont affichés avec l’échappement Blade. La quantité observée reste conservée avec la recommandation.</p>
                 </section>
             </aside>
         </div>

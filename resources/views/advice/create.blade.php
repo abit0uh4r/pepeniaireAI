@@ -88,24 +88,6 @@
                         </section>
 
                         <section class="border-t border-slate-100 pt-8">
-                            <div class="flex items-center justify-between gap-4">
-                                <div>
-                                    <label class="block text-sm font-semibold text-slate-800">Avez-vous des animaux ?</label>
-                                    <p class="mt-1 text-sm text-slate-500">Nous privilégierons uniquement les fiches explicitement sûres.</p>
-                                </div>
-                                <div class="flex shrink-0 gap-2">
-                                    <label class="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50">
-                                        <input type="radio" name="has_pets" value="1" @checked(old('has_pets') === '1') class="border-slate-300 text-emerald-700 focus:ring-emerald-600"> Oui
-                                    </label>
-                                    <label class="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50">
-                                        <input type="radio" name="has_pets" value="0" @checked(old('has_pets') === '0') class="border-slate-300 text-emerald-700 focus:ring-emerald-600"> Non
-                                    </label>
-                                </div>
-                            </div>
-                            <x-input-error :messages="$errors->get('has_pets')" class="mt-2" />
-                        </section>
-
-                        <section class="border-t border-slate-100 pt-8">
                             <p class="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">Optionnel</p>
                             <div class="mt-4 grid gap-5 sm:grid-cols-2">
                                 <div>

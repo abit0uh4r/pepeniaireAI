@@ -1,27 +1,25 @@
 <?php
 
-use App\Contracts\AI\PlantAdvisor;
-use App\DTOs\Advice\AdviceContext;
-use App\DTOs\Advice\AdviceResult;
 use App\Enums\Exposure;
 use App\Enums\Level;
 use App\Enums\PlantEnvironment;
 use App\Enums\SpaceSize;
 use App\Models\Plant;
-use App\Services\AI\GroqPlantAdvisor;
+use App\Services\GroqPlantAdvisor;
+use App\Services\PlantAdvisor;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 
-function groqAdviceContext(): AdviceContext
+function groqAdviceContext(): array
 {
-    return new AdviceContext(
-        environment: PlantEnvironment::INDOOR,
-        exposure: Exposure::PARTIAL_SHADE,
-        spaceSize: SpaceSize::MEDIUM,
-        maintenanceAvailability: Level::MEDIUM,
-        hasPets: false,
-        freeTextDescription: 'Une pièce lumineuse avec un entretien régulier.',
-    );
+    return [
+        'environment' => PlantEnvironment::INDOOR->value,
+        'exposure' => Exposure::PARTIAL_SHADE->value,
+        'space_size' => SpaceSize::MEDIUM->value,
+        'maintenance_availability' => Level::MEDIUM->value,
+        'free_text_description' => 'Une pièce lumineuse avec un entretien régulier.',
+    ];
 }
 
 function groqAdvisor(): GroqPlantAdvisor
@@ -49,12 +47,11 @@ test('it sends only the request context and prefiltered plant fields', function 
         'species' => 'Ficus elastica',
         'description' => 'Plante de test',
         'environment' => PlantEnvironment::INDOOR,
-        'exposure' => [Exposure::PARTIAL_SHADE],
+        'exposure' => Exposure::PARTIAL_SHADE,
         'watering_level' => Level::MEDIUM,
         'maintenance_level' => Level::LOW,
         'adult_height_cm' => 80,
         'adult_width_cm' => 50,
-        'pet_safe' => true,
     ]);
     $content = json_encode([
         'space_summary' => 'Espace moyen',
@@ -68,10 +65,9 @@ test('it sends only the request context and prefiltered plant fields', function 
         ]),
     ]);
 
-    $result = groqAdvisor()->advise(groqAdviceContext(), [$plant->id]);
+    $result = groqAdvisor()->advise(groqAdviceContext(), new Collection([$plant]));
 
-    expect($result)->toBeInstanceOf(AdviceResult::class)
-        ->and($result->recommendations[0]->plantId)->toBe($plant->id);
+    expect($result['recommendations'][0]['plant_id'])->toBe($plant->id);
 
     Http::assertSent(function (Request $request) use ($plant): bool {
         $body = $request->data();
@@ -83,7 +79,8 @@ test('it sends only the request context and prefiltered plant fields', function 
             && str_contains($message, (string) $plant->id)
             && ! str_contains($message, 'customer_email')
             && ! str_contains($message, 'price')
-            && ! str_contains($message, 'stock_quantity');
+            && ! str_contains($message, 'stock_quantity')
+            && ! str_contains($message, 'pet_safe');
     });
 });
 
@@ -94,7 +91,7 @@ test('it rejects an invalid json response before the job can persist it', functi
         ]),
     ]);
 
-    expect(fn () => groqAdvisor()->advise(groqAdviceContext(), [1]))
+    expect(fn () => groqAdvisor()->advise(groqAdviceContext(), new Collection))
         ->toThrow(RuntimeException::class, 'JSON valide');
 });
 
@@ -104,7 +101,7 @@ test('it converts an http failure into a sanitized runtime error', function () {
     ]);
 
     try {
-        groqAdvisor()->advise(groqAdviceContext(), [1]);
+        groqAdvisor()->advise(groqAdviceContext(), new Collection);
         $message = '';
     } catch (RuntimeException $exception) {
         $message = $exception->getMessage();
@@ -117,7 +114,7 @@ test('it refuses to call groq without an api key', function () {
     Http::fake();
     $advisor = new GroqPlantAdvisor('', 'https://groq.test/openai/v1', 'openai/gpt-oss-20b', 7, 900);
 
-    expect(fn () => $advisor->advise(groqAdviceContext(), [1]))
+    expect(fn () => $advisor->advise(groqAdviceContext(), new Collection))
         ->toThrow(RuntimeException::class, 'pas configuré');
 
     Http::assertNothingSent();
