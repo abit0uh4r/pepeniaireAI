@@ -155,7 +155,7 @@ Le catalogue est accessible uniquement au gérant connecté et vérifié depuis 
 
 Le formulaire permet de renseigner le nom, l’espèce, l’environnement, les expositions, les niveaux d’arrosage et d’entretien, les dimensions adultes, la sécurité animale, le prix et le stock. Les fiches peuvent être recherchées, filtrées, modifiées, désactivées ou archivées par suppression logique.
 
-Pour initialiser les trois plantes de démonstration :
+Pour initialiser le catalogue de démonstration (23 plantes variées) :
 
 ```bash
 php artisan db:seed --class=PlantSeeder
