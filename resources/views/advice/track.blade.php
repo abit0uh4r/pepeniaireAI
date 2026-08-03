@@ -132,7 +132,7 @@
                                             <dl class="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                                                 <div class="rounded-2xl bg-[#f4f0e6] p-4"><dt class="text-xs font-bold uppercase tracking-wide text-slate-500">Entretien</dt><dd class="mt-2 font-semibold text-emerald-950">{{ $plant->maintenance_level->label() }}</dd></div>
                                                 <div class="rounded-2xl bg-[#f4f0e6] p-4"><dt class="text-xs font-bold uppercase tracking-wide text-slate-500">Arrosage</dt><dd class="mt-2 font-semibold text-emerald-950">{{ $plant->watering_level->label() }}</dd></div>
-                                                <div class="rounded-2xl bg-[#f4f0e6] p-4"><dt class="text-xs font-bold uppercase tracking-wide text-slate-500">Prix observé</dt><dd class="mt-2 font-semibold text-emerald-950">{{ number_format((float) $recommendation->price_snapshot, 2, ',', ' ') }} €</dd></div>
+                                                <div class="rounded-2xl bg-[#f4f0e6] p-4"><dt class="text-xs font-bold uppercase tracking-wide text-slate-500">Prix observé</dt><dd class="mt-2 font-semibold text-emerald-950">{{ \App\Support\MoneyFormatter::formatMad($recommendation->price_snapshot) }}</dd></div>
                                                 <div class="rounded-2xl bg-[#f4f0e6] p-4"><dt class="text-xs font-bold uppercase tracking-wide text-slate-500">Stock observé</dt><dd class="mt-2 font-semibold text-emerald-950">{{ $recommendation->stock_quantity_snapshot }} unité(s)</dd></div>
                                             </dl>
 

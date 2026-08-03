@@ -47,7 +47,7 @@ ADVICE_MAX_RECOMMENDATIONS=3
 
 Le projet ne créera pas de tables `sessions` ou `cache`. Il ne créera `job_batches` qu’en cas d’usage futur des batches. Redis et Horizon restent exclus.
 
-Mailpit sera présent dans Docker Compose et configuré comme transport SMTP local, même si l’envoi du lien reste optionnel dans le MVP.
+Les emails locaux utiliseront le driver `log`. Aucun serveur SMTP de développement ne sera démarré par Docker Compose ; l’envoi du lien reste optionnel et hors du chemin critique du MVP.
 
 ### TD-005 : Contrat du conseiller
 
@@ -123,7 +123,6 @@ L’environnement cible comprendra :
 - `web`, pour Nginx ;
 - `mysql`, pour MySQL 8.4 ;
 - `worker`, construit depuis la même image que `app` ;
-- `mailpit` ;
 - `node`, sous forme de profil ou de commande ponctuelle pour les assets.
 
 Le worker lancera `php artisan queue:work` avec des limites explicites. `app` et `worker` partageront le code et les volumes de stockage nécessaires aux drivers fichiers dans l’environnement local.
@@ -181,7 +180,7 @@ L’interface adopte un système visuel commun « carnet botanique » réalisé 
 | Tables techniques | Le cahier cite `sessions`, `cache` et `job_batches`, incompatibles ou inutiles avec les réglages imposés. | Créer seulement `jobs` et `failed_jobs`. |
 | Nom du Job | Le diagramme utilise `AnalyzeAdviceRequestJob`, le texte `GeneratePlantAdviceJob`. | Retenir `GeneratePlantAdviceJob`. |
 | Stockage local | Le diagramme prévoit pièces jointes et documents, absents du périmètre MVP. | Aucun stockage documentaire métier dans le MVP. |
-| Email | Le flux montre un email optionnel et Mailpit est obligatoire. | Configurer Mailpit ; garder l’envoi du lien hors du chemin critique et hors MVP initial. |
+| Email | Le flux montre un email optionnel, sans besoin de serveur SMTP local. | Utiliser le driver `log` ; garder l’envoi du lien hors du chemin critique et hors MVP initial. |
 | Description libre | Le champ est décrit comme « obligatoire ou fortement recommandé ». | Le rendre obligatoire avec limites de longueur. |
 | Expositions | Le modèle hésite entre JSON et SET. | JSON casté et validé par Laravel. |
 | Seuils de taille | BR-04 exige des seuils qui ne sont pas fournis. | Configuration dédiée, valeurs à faire valider avant implémentation du filtre. |
@@ -200,3 +199,9 @@ Ces sujets ne bloquent ni l’installation ni le catalogue :
 - envoi du lien public par email.
 
 Ils devront être décidés avant la phase qui les utilise.
+
+### TD-020 : Devise d’affichage et transport email local
+
+Les montants sont stockés comme des décimaux SQL sans changement de schéma et sont affichés en dirhams marocains (`MAD`). Le formateur de prix conserve les valeurs décimales sous forme de chaînes afin de ne pas introduire de flottants dans la présentation.
+
+Mailpit est retiré de l’environnement local à la demande du porteur du projet. Laravel utilise `MAIL_MAILER=log` ; aucun port SMTP ou volume Mailpit ne fait partie de Docker Compose.

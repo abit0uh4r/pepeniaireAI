@@ -26,7 +26,7 @@ Documenter toute nouvelle décision structurante dans `docs/technical-decisions.
 - `QUEUE_CONNECTION=database`, avec `jobs` et `failed_jobs` ;
 - `CACHE_STORE=file` ;
 - `SESSION_DRIVER=file` ;
-- Mailpit en développement ;
+- email local via le driver `log` ;
 - Pest pour les tests ;
 - Docker Compose pour l’environnement local ;
 - GitHub Actions pour l’intégration continue ;

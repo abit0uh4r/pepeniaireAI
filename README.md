@@ -2,7 +2,7 @@
 
 Application monolithique Laravel 13 pour la gestion d’une pépinière et le futur parcours de conseil assisté par IA.
 
-Le projet fournit un catalogue de plantes administré par un gérant authentifié et un formulaire public de conseil : Breeze Blade, Tailwind CSS, Alpine.js, Pest, MySQL 8.4, queue database, Mailpit, Docker Compose et GitHub Actions.
+Le projet fournit un catalogue de plantes administré par un gérant authentifié et un formulaire public de conseil : Breeze Blade, Tailwind CSS, Alpine.js, Pest, MySQL 8.4, queue database, Docker Compose et GitHub Actions.
 
 ## Prérequis
 
@@ -78,7 +78,6 @@ Accès locaux :
 
 - application : <http://localhost:8088>
 - santé : <http://localhost:8088/health>
-- Mailpit : <http://localhost:8025>
 - MySQL depuis l’hôte : `127.0.0.1:33060`
 
 Le conteneur `queue-worker` utilise la même image `pepiniereia-app:local` que le conteneur `app`.
@@ -90,8 +89,7 @@ Adaptez `.env` pour les services qui tournent sur l’hôte :
 ```dotenv
 DB_HOST=127.0.0.1
 DB_PORT=3306
-MAIL_HOST=127.0.0.1
-MAIL_PORT=1025
+MAIL_MAILER=log
 ```
 
 Installez et initialisez le projet :
@@ -224,9 +222,9 @@ Les variables `GROQ_MODEL`, `GROQ_BASE_URL`, `GROQ_TIMEOUT` et `GROQ_MAX_TOKENS`
 
 Les réponses publiques de suivi utilisent des tokens aléatoires et sont envoyées avec `Cache-Control: private, no-store`. L’application ajoute également des en-têtes de sécurité communs sur ses réponses HTTP.
 
-## Mailpit
+## Emails locaux
 
-Laravel envoie les emails locaux vers `mailpit:1025`. L’interface web écoute sur le port `8025`.
+Les emails locaux utilisent le driver `log`. Aucun serveur SMTP n’est requis pour démarrer le projet.
 
 PowerShell :
 
@@ -305,7 +303,7 @@ docker compose exec app php artisan about
 docker compose exec app php artisan route:list
 ```
 
-La commande suivante supprime les conteneurs et les volumes MySQL, Mailpit et stockage Laravel. Elle efface les données locales :
+La commande suivante supprime les conteneurs et les volumes MySQL et stockage Laravel. Elle efface les données locales :
 
 ```bash
 docker compose down --volumes
@@ -320,7 +318,6 @@ Navigateur
     |
 Laravel PHP-FPM 8.3
     |-- MySQL 8.4
-    |-- Mailpit
     `-- jobs database <- queue-worker
 ```
 

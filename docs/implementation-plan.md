@@ -152,7 +152,7 @@ Résultat : Laravel 13 vide fonctionne avec PHP 8.3, Blade, Pest et les réglage
 - [ ] Installer Laravel 13 dans le dépôt existant sans écraser `docs/` ni `AGENTS.md`.
 - [ ] Fixer la contrainte PHP à `^8.3`.
 - [ ] Vérifier la présence de Pest et configurer la suite de base.
-- [ ] Configurer MySQL, les drivers file, la queue database et Mailpit dans `.env.example`.
+- [ ] Configurer MySQL, les drivers file, la queue database et le driver mail `log` dans `.env.example`.
 - [ ] Générer uniquement les migrations `jobs` et `failed_jobs` nécessaires.
 - [ ] Préparer `config/advice.php` avec `AI_PROVIDER=fake` et la limite de trois recommandations.
 - [ ] Confirmer l’absence de React, Vue, Livewire, Inertia, Sanctum, Redis et Horizon.
@@ -176,10 +176,10 @@ Critère de sortie : application Laravel vierge, test de démarrage vert, migrat
 
 ### Phase 2 : Conteneuriser l’environnement
 
-Résultat : l’application, MySQL 8.4, le worker et Mailpit démarrent avec Docker Compose.
+Résultat : l’application, MySQL 8.4 et le worker démarrent avec Docker Compose.
 
 - [ ] Créer l’image PHP 8.3 commune à `app` et `worker`.
-- [ ] Ajouter Nginx, MySQL 8.4 et Mailpit.
+- [ ] Ajouter Nginx et MySQL 8.4.
 - [ ] Ajouter le profil ou service Node pour Vite.
 - [ ] Ajouter les healthchecks et dépendances de démarrage.
 - [ ] Vérifier l’écriture de `storage/` et le partage nécessaire avec le worker.

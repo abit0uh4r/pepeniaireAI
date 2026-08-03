@@ -76,7 +76,7 @@ test('a manager can audit recommendation snapshots separately from current stock
         ->get(route('admin.advice-requests.show', $adviceRequest))
         ->assertOk()
         ->assertSee('Ficus audité')
-        ->assertSee('39,00 €')
+        ->assertSee('39,00 MAD')
         ->assertSee('Stock observé')
         ->assertSee('Stock courant')
         ->assertSee('&lt;script&gt;alert(1)&lt;/script&gt;', escape: false)

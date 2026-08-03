@@ -19,9 +19,7 @@ x-laravel-environment: &laravel-environment
   SESSION_DRIVER: file
   CACHE_STORE: file
   QUEUE_CONNECTION: database
-  MAIL_MAILER: smtp
-  MAIL_HOST: mailpit
-  MAIL_PORT: "1025"
+  MAIL_MAILER: log
   MAIL_FROM_ADDRESS: noreply@pepiniere-ia.test
   MAIL_FROM_NAME: Pépinière IA
   MANAGER_NAME: ${MANAGER_NAME:-Gérant}
@@ -89,18 +87,6 @@ services:
       start_period: 30s
     restart: unless-stopped
 
-  mailpit:
-    image: axllent/mailpit:v1.30.5
-    environment:
-      MP_DATABASE: /data/mailpit.db
-      MP_MAX_MESSAGES: "500"
-    ports:
-      - "1025:1025"
-      - "8025:8025"
-    volumes:
-      - mailpit-data:/data
-    restart: unless-stopped
-
   queue-worker:
     image: pepiniereia-app:local
     environment: *laravel-environment
@@ -125,5 +111,4 @@ services:
 
 volumes:
   laravel-storage:
-  mailpit-data:
   mysql-data:

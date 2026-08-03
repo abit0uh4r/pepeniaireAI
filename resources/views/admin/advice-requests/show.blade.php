@@ -52,7 +52,7 @@
                                 </div>
                                 <p class="mt-5 border-l-4 border-lime-400 pl-4 text-sm leading-7 text-slate-700">{{ $recommendation->reason }}</p>
                                 <dl class="mt-6 grid gap-3 sm:grid-cols-3">
-                                    <div class="rounded-2xl bg-[#f4f0e6] p-4"><dt class="text-xs text-slate-500">Prix observé</dt><dd class="mt-1 font-bold text-emerald-950">{{ number_format((float) $recommendation->price_snapshot, 2, ',', ' ') }} €</dd></div>
+                                    <div class="rounded-2xl bg-[#f4f0e6] p-4"><dt class="text-xs text-slate-500">Prix observé</dt><dd class="mt-1 font-bold text-emerald-950">{{ \App\Support\MoneyFormatter::formatMad($recommendation->price_snapshot) }}</dd></div>
                                     <div class="rounded-2xl bg-[#f4f0e6] p-4"><dt class="text-xs text-slate-500">Stock observé</dt><dd class="mt-1 font-bold text-emerald-950">{{ $recommendation->stock_quantity_snapshot }}</dd></div>
                                     <div class="rounded-2xl bg-[#f4f0e6] p-4"><dt class="text-xs text-slate-500">Stock courant</dt><dd class="mt-1 font-bold text-emerald-950">{{ $plant?->stock_quantity ?? '—' }}</dd></div>
                                 </dl>

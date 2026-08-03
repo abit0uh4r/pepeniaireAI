@@ -72,7 +72,7 @@
                                 <p class="min-h-12 text-sm leading-6 text-slate-600">{{ $plant->description ?: 'Aucune description renseignée.' }}</p>
                                 <dl class="mt-5 grid grid-cols-2 gap-3 text-sm">
                                     <div class="rounded-2xl bg-[#f5f7f1] p-3"><dt class="text-xs text-slate-500">Stock</dt><dd class="mt-1 font-semibold {{ $plant->stock_quantity > 0 ? 'text-emerald-800' : 'text-amber-700' }}">{{ $plant->stock_quantity }} unité(s)</dd></div>
-                                    <div class="rounded-2xl bg-[#f5f7f1] p-3"><dt class="text-xs text-slate-500">Prix</dt><dd class="mt-1 font-semibold text-slate-900">{{ number_format($plant->price, 2, ',', ' ') }} €</dd></div>
+                                    <div class="rounded-2xl bg-[#f5f7f1] p-3"><dt class="text-xs text-slate-500">Prix</dt><dd class="mt-1 font-semibold text-slate-900">{{ \App\Support\MoneyFormatter::formatMad($plant->price) }}</dd></div>
                                     <div class="rounded-2xl bg-[#f5f7f1] p-3"><dt class="text-xs text-slate-500">Environnement</dt><dd class="mt-1 font-semibold text-slate-900">{{ $plant->environment->label() }}</dd></div>
                                     <div class="rounded-2xl bg-[#f5f7f1] p-3"><dt class="text-xs text-slate-500">Animaux</dt><dd class="mt-1 font-semibold text-slate-900">{{ $plant->pet_safe === null ? 'Inconnu' : ($plant->pet_safe ? 'Sûre' : 'À éviter') }}</dd></div>
                                 </dl>

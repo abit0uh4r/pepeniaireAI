@@ -153,7 +153,7 @@ test('a completed request displays persisted recommendations and escapes advisor
         ->assertOk()
         ->assertSee('Votre sélection est prête.')
         ->assertSee('Calathea test')
-        ->assertSee('29,90 €')
+        ->assertSee('29,90 MAD')
         ->assertSee('Stock observé')
         ->assertSee('&lt;script&gt;alert(&quot;summary&quot;)&lt;/script&gt;', escape: false)
         ->assertDontSee('<script>', escape: false)

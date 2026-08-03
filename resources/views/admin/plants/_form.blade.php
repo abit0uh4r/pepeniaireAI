@@ -93,7 +93,7 @@
                 <x-input-error :messages="$errors->get('adult_width_cm')" class="mt-2" />
             </div>
             <div>
-                <x-input-label for="price" value="Prix (€)" />
+                <x-input-label for="price" value="Prix (MAD)" />
                 <x-text-input id="price" name="price" type="number" min="0" step="0.01" class="mt-1 block w-full" :value="old('price', $plant->price ?? '')" required />
                 <x-input-error :messages="$errors->get('price')" class="mt-2" />
             </div>
