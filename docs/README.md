@@ -8,6 +8,7 @@ Cette documentation explique le projet à partir du code présent dans le dépô
 2. [Architecture et flux d’exécution](architecture.md) : couches Laravel, données, requêtes HTTP, queue et IA.
 3. [Référence des fichiers](file-reference.md) : rôle des dossiers et des fichiers suivis par Git.
 4. [Guide de développement](development-guide.md) : installation, commandes, tests, configuration et dépannage.
+5. [Contexte à fournir à ChatGPT](chatgpt-project-context.md) : état autonome et vérifié du projet pour préparer de futures mises à jour.
 
 ## Documents de cadrage
 
