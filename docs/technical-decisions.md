@@ -206,9 +206,3 @@ Ils devront être décidés avant la phase qui les utilise.
 Les montants sont stockés comme des décimaux SQL sans changement de schéma et sont affichés en dirhams marocains (`MAD`). Le formateur de prix conserve les valeurs décimales sous forme de chaînes afin de ne pas introduire de flottants dans la présentation.
 
 Mailpit est retiré de l’environnement local à la demande du porteur du projet. Laravel utilise `MAIL_MAILER=log` ; aucun port SMTP ou volume Mailpit ne fait partie de Docker Compose.
-
-### TD-021 : Documentation des endpoints avec Scribe
-
-Scribe est installé comme dépendance de développement (`knuckleswtf/scribe`) afin de documenter les routes HTTP JSON existantes sans transformer l’application Blade en API REST séparée. La documentation Laravel est générée avec `php artisan scribe:generate` et servie sur `/docs`, `/docs.openapi` et `/docs.postman` derrière la session du gérant (`web` + `auth`).
-
-Le périmètre est volontairement limité aux routes nommées `health` et `advice.status`. Les routes d’administration, les formulaires HTML et les routes Breeze ne sont pas publiés dans la documentation. Les appels automatiques de réponse sont désactivés : le statut public exige un token réel et un accès à la base ; les exemples de réponses pourront être ajoutés plus tard par annotations explicites.

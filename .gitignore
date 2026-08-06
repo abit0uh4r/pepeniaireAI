@@ -16,7 +16,6 @@
 /public/build
 /public/hot
 /public/storage
-.scribe
 /storage/*.key
 /storage/pail
 /vendor

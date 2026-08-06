@@ -87,9 +87,6 @@ jobs:
       - name: Build frontend assets
         run: npm run build
 
-      - name: Generate HTTP documentation
-        run: php artisan scribe:generate --force --no-interaction --silent
-
       - name: Validate Composer metadata
         run: composer validate --strict
 

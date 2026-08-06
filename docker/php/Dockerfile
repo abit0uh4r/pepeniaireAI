@@ -56,7 +56,6 @@ COPY --from=frontend /build/public/build ./public/build
 RUN cp .env.example .env \
     && composer dump-autoload --no-interaction --optimize \
     && php artisan package:discover --ansi \
-    && php artisan scribe:generate --force --no-interaction --silent \
     && chown -R www-data:www-data bootstrap/cache storage
 
 RUN chmod +x /usr/local/bin/pepiniere-entrypoint
