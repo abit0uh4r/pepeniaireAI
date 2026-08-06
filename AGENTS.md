@@ -152,6 +152,7 @@ vendor/bin/pint --test
 php artisan test
 npm run build
 php artisan migrate:fresh --seed
+php artisan scribe:generate
 ```
 
 Pour l’environnement conteneurisé :

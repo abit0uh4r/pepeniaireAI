@@ -192,6 +192,24 @@ Pour observer le traitement :
 docker compose logs --tail=50 queue-worker
 ```
 
+## Documentation HTTP avec Scribe
+
+Scribe documente uniquement les deux endpoints JSON déjà présents (`/health` et `/conseil/suivi/{token}/status`). Il ne crée pas de `routes/api.php` ni d’API REST séparée.
+
+Générez ou actualisez la documentation après une modification de route :
+
+```bash
+php artisan scribe:generate
+```
+
+Avec Docker :
+
+```bash
+docker compose exec app php artisan scribe:generate
+```
+
+La page Blade est disponible sur <http://localhost:8088/docs> après connexion du gérant. Les formats OpenAPI et Postman sont accessibles respectivement sur `/docs.openapi` et `/docs.postman`. Les fichiers générés sont reconstruits par la commande Scribe ; `.scribe/` et les sorties temporaires restent ignorés par Git.
+
 ## Queue
 
 La configuration utilise `QUEUE_CONNECTION=database`. La migration technique crée `jobs` et `failed_jobs`.
