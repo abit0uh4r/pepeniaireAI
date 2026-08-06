@@ -314,6 +314,11 @@ Les sessions et le cache utilisent des fichiers. Redis, Horizon, Sanctum, React,
 
 ## Documentation
 
+- [Guide technique complet](docs/README.md)
+- [Vue d’ensemble du projet](docs/project-overview.md)
+- [Architecture et flux d’exécution](docs/architecture.md)
+- [Référence des fichiers](docs/file-reference.md)
+- [Guide de développement et dépannage](docs/development-guide.md)
 - [Conventions du projet](AGENTS.md)
 - [Décisions techniques](docs/technical-decisions.md)
 - [Plan d’implémentation](docs/implementation-plan.md)
