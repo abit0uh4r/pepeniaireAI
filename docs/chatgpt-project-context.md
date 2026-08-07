@@ -2,7 +2,7 @@
 
 > Document autonome à transmettre à ChatGPT avant de lui demander une modification du projet.
 >
-> Dernière vérification par rapport au dépôt : 6 août 2026.
+> Dernière vérification par rapport au dépôt : 7 août 2026.
 
 ## Mode d’emploi
 
@@ -35,12 +35,12 @@ Le visiteur peut :
 - consulter la page d’accueil ;
 - soumettre une demande sur `/conseil` ;
 - renseigner son environnement, son exposition, la taille de son espace, sa disponibilité d’entretien et une description libre ;
-- fournir facultativement son nom et son email ;
+- fournir facultativement son prénom ;
 - recevoir immédiatement une URL de suivi contenant un token public aléatoire ;
 - suivre les états `PENDING`, `PROCESSING`, `COMPLETED` ou `FAILED` ;
 - consulter les recommandations persistées lorsque le traitement est terminé.
 
-Le nom et l’email ne sont jamais transmis au fournisseur IA. Aucun email automatique n’est envoyé dans le MVP actuel. L’email facultatif est seulement conservé comme coordonnée dans la demande.
+Le formulaire ne collecte aucune adresse email visiteur. Le prénom facultatif n’est jamais transmis au fournisseur IA. Laravel affiche le lien de suivi dès la soumission.
 
 ### Gérant authentifié
 
@@ -249,7 +249,7 @@ Le champ `pet_safe` a été supprimé. L’exposition n’est plus un JSON multi
 
 ### `advice_requests`
 
-Contient : token public, coordonnées facultatives, critères du visiteur, texte libre, statut, résumé, conseils, message d’échec et horodatages de traitement.
+Contient : token public, prénom facultatif, critères du visiteur, texte libre, statut, résumé, conseils, message d’échec et horodatages de traitement. La colonne `customer_email` a été supprimée.
 
 Les champs `has_pets`, `failure_code` et `raw_ai_response` ont été supprimés.
 

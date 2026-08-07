@@ -6,9 +6,12 @@ Cette documentation explique le projet à partir du code présent dans le dépô
 
 1. [Vue d’ensemble du projet](project-overview.md) : objectifs, utilisateurs, fonctionnalités et choix techniques.
 2. [Architecture et flux d’exécution](architecture.md) : couches Laravel, données, requêtes HTTP, queue et IA.
-3. [Référence des fichiers](file-reference.md) : rôle des dossiers et des fichiers suivis par Git.
-4. [Guide de développement](development-guide.md) : installation, commandes, tests, configuration et dépannage.
-5. [Contexte à fournir à ChatGPT](chatgpt-project-context.md) : état autonome et vérifié du projet pour préparer de futures mises à jour.
+3. [Lecture guidée du code](code-walkthrough.md) : parcours du code avec extraits expliqués en langage simple.
+4. [Modèle de données](data-model.md) : tables, colonnes, relations, contraintes et historique des migrations.
+5. [Référence des fichiers](file-reference.md) : rôle des dossiers et des fichiers suivis par Git.
+6. [Guide de développement](development-guide.md) : installation, commandes, tests, configuration et dépannage.
+7. [Glossaire Laravel](glossary.md) : définition des termes rencontrés dans le projet.
+8. [Contexte à fournir à ChatGPT](chatgpt-project-context.md) : état autonome et vérifié du projet pour préparer de futures mises à jour.
 
 ## Documents de cadrage
 

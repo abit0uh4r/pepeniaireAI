@@ -161,7 +161,7 @@ Les enums PHP convertissent les chaînes SQL en objets typés. Le prix utilise `
 
 ### `advice_requests`
 
-Entrée du visiteur et résultat global : token public, coordonnées facultatives, critères, description, statut, résumé, conseils, message d’échec et horodatages de traitement.
+Entrée du visiteur et résultat global : token public, prénom facultatif, critères, description, statut, résumé, conseils, message d’échec et horodatages de traitement. La table ne conserve aucune adresse email visiteur.
 
 ### `plant_recommendations`
 

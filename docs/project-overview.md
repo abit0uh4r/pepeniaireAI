@@ -14,11 +14,11 @@ Le visiteur peut :
 
 - consulter la page d’accueil ;
 - remplir le formulaire `/conseil` sans compte ;
-- donner un nom et un email facultatifs ;
+- donner un prénom facultatif ;
 - recevoir une URL de suivi contenant un token aléatoire ;
 - consulter le statut puis les recommandations persistées.
 
-Le nom et l’email ne partent pas chez Groq. L’email sert seulement de coordonnée facultative dans l’historique actuel. L’envoi automatique du lien par email reste hors MVP.
+Le formulaire ne demande aucune adresse email au visiteur. Le prénom facultatif ne part pas chez Groq. Laravel affiche le lien de suivi dès la soumission.
 
 ### Gérant
 
@@ -124,7 +124,6 @@ Les seuils actuels se trouvent dans `config/advice.php` : petit `60 × 45 cm`, m
 Le code correspond au MVP simplifié décrit dans `technical-decisions.md`. Quelques points méritent une décision avant une mise en production :
 
 - valider les seuils de dimensions avec le gérant ;
-- décider si l’email facultatif doit déclencher un vrai envoi ;
 - choisir une stratégie de remise en file des demandes restées en `PROCESSING` après un arrêt brutal ;
 - décider si un résultat devenu vide lors de la seconde vérification doit finir en `FAILED` plutôt qu’en `COMPLETED` ;
 - ajouter une contrainte SQL unique sur `(advice_request_id, rank)` si le rang doit être unique au niveau de la base ;

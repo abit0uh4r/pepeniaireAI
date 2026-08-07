@@ -169,8 +169,9 @@ Seuls les fichiers de configuration appellent `env()`. Le code applicatif lit `c
 | `2026_07_29_130000_create_advice_requests_table.php` | Schéma initial des demandes. |
 | `2026_07_29_140000_create_plant_recommendations_table.php` | Recommandations, rangs et snapshots initiaux. |
 | `2026_08_03_190000_simplify_mvp_schema.php` | Convertit l’exposition JSON en enum simple et retire `pet_safe`, `failure_code`, réponse brute IA et snapshot de prix. |
+| `2026_08_06_100000_remove_customer_email_from_advice_requests.php` | Retire l’adresse email visiteur des demandes ; le rollback peut recréer la colonne. |
 
-La dernière migration transforme des données existantes avant de retirer les anciennes colonnes. Elle documente l’évolution du projet au lieu de réécrire l’historique des migrations.
+Les migrations de simplification transforment ou retirent les anciennes colonnes. Elles conservent l’historique du schéma au lieu de réécrire les migrations déjà exécutées.
 
 ### Seeders
 
@@ -286,8 +287,12 @@ Les `.gitignore` conservent la structure des dossiers sans suivre les données d
 - `README.md` indexe les documents techniques.
 - `project-overview.md` explique le produit et les choix.
 - `architecture.md` explique les couches et les flux.
+- `code-walkthrough.md` suit le code avec des extraits commentés.
+- `data-model.md` détaille le schéma et les relations.
 - `file-reference.md` décrit le dépôt fichier par fichier.
 - `development-guide.md` aide à installer, tester et dépanner.
+- `glossary.md` définit le vocabulaire Laravel du projet.
+- `chatgpt-project-context.md` fournit un contexte autonome pour préparer une évolution avec ChatGPT.
 - `technical-decisions.md` conserve les arbitrages numérotés.
 - `implementation-plan.md` conserve l’historique du découpage en phases.
 - le DOCX et le PNG sont les sources de cadrage initiales.
