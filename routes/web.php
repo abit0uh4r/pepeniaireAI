@@ -41,6 +41,11 @@ Route::get('/dashboard', function () {
 
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
     Route::resource('advice-requests', AdminAdviceRequestController::class)->only(['index', 'show']);
+    Route::get('plants/archived', [PlantController::class, 'archived'])
+        ->name('plants.archived');
+    Route::patch('plants/{plant}/restore', [PlantController::class, 'restore'])
+        ->withTrashed()
+        ->name('plants.restore');
     Route::resource('plants', PlantController::class)->except(['show']);
     Route::patch('plants/{plant}/deactivate', [PlantController::class, 'deactivate'])
         ->name('plants.deactivate');

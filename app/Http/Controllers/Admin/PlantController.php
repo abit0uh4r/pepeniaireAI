@@ -42,6 +42,23 @@ class PlantController extends Controller
         ]);
     }
 
+    public function archived(Request $request): View
+    {
+        Gate::authorize('viewAny', Plant::class);
+
+        $plants = Plant::onlyTrashed()
+            ->search($request->string('search')->toString())
+            ->orderByDesc('deleted_at')
+            ->orderBy('name')
+            ->paginate(12)
+            ->withQueryString();
+
+        return view('admin.plants.archived', [
+            'plants' => $plants,
+            'search' => $request->string('search')->toString(),
+        ]);
+    }
+
     public function create(): View
     {
         Gate::authorize('create', Plant::class);
@@ -77,6 +94,15 @@ class PlantController extends Controller
         $plant->update(['is_active' => false]);
 
         return to_route('admin.plants.index')->with('status', 'La plante a été désactivée.');
+    }
+
+    public function restore(Plant $plant): RedirectResponse
+    {
+        Gate::authorize('restore', $plant);
+
+        $plant->restore();
+
+        return to_route('admin.plants.archived')->with('status', 'La fiche a été restaurée. Elle reste inactive jusqu’à sa réactivation.');
     }
 
     public function destroy(Plant $plant): RedirectResponse
