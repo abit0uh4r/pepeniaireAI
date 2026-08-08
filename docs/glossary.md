@@ -66,9 +66,13 @@ ORM de Laravel. Un modèle comme `Plant` représente une table et permet d’éc
 
 Classe qui crée des données pour les tests. `PlantFactory` produit une plante valide, puis un test peut remplacer son stock ou son exposition.
 
-## Fake
+## GroqPlantAdvisor
 
-Implémentation de test qui remplace un service externe. `FakePlantAdvisor` classe les candidates sans appeler Internet.
+Service qui appelle l’API Groq via le client HTTP Laravel. Il reçoit uniquement les candidates déjà filtrées par Laravel et renvoie un classement et des explications structurées. Les tests remplacent le transport HTTP avec `Http::fake()` : aucun appel réel n’est effectué.
+
+## Polling
+
+Technique où le navigateur repose régulièrement la même question au serveur. Ici, Alpine.js appelle le statut de la demande toutes les cinq secondes jusqu’à `COMPLETED` ou `FAILED`.
 
 ## Form Request
 
@@ -132,7 +136,7 @@ Requête répétée par le navigateur pour connaître un nouvel état. La page d
 
 ## Provider
 
-Classe qui enregistre des services au démarrage de Laravel. `AppServiceProvider` associe `PlantAdvisor` au fake ou à Groq.
+Classe qui enregistre des services au démarrage de Laravel. `AppServiceProvider` associe `PlantAdvisor` à `GroqPlantAdvisor`.
 
 ## Queue
 

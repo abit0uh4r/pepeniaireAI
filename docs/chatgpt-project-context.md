@@ -73,8 +73,7 @@ L’inscription publique est désactivée. Il n’existe aucune route `/register
 | Assets | Vite 7 et Node.js 22 en CI |
 | Environnement | Docker Compose, PHP-FPM, Nginx, MySQL et worker |
 | CI | GitHub Actions |
-| IA locale/tests | `FakePlantAdvisor` |
-| IA réelle optionnelle | `GroqPlantAdvisor` |
+| Fournisseur IA | `GroqPlantAdvisor` (unique) |
 | Emails locaux | driver Laravel `log` |
 
 Éléments absents et à ne pas réintroduire sans nouvelle décision explicite : React, Vue, Livewire, Inertia, SPA, Redis, Horizon, Sanctum, microservices et API REST produit séparée.
@@ -110,7 +109,6 @@ Responsabilités principales :
 - les Form Requests valident et normalisent les entrées ;
 - `PlantEligibilityService` applique le préfiltrage déterministe ;
 - `PlantAdvisor` est l’interface commune aux conseillers ;
-- `FakePlantAdvisor` produit un résultat déterministe sans réseau ;
 - `GroqPlantAdvisor` appelle Groq et exige une sortie JSON structurée en français ;
 - `GeneratePlantAdviceJob` orchestre le traitement, valide la réponse IA et persiste le résultat ;
 - Eloquent et MySQL restent les sources de vérité.
@@ -181,13 +179,9 @@ Le nombre maximal de recommandations est configuré avec `ADVICE_MAX_RECOMMENDAT
 
 ## Conseillers IA
 
-### Faux conseiller
+### Groq, fournisseur unique
 
-`FakePlantAdvisor` est le fournisseur par défaut (`AI_PROVIDER=fake`). Il est déterministe, ne fait aucun appel réseau et sert au développement, aux démonstrations reproductibles et aux tests.
-
-### Groq
-
-`GroqPlantAdvisor` est activé explicitement avec `AI_PROVIDER=groq`. Sa configuration repose sur :
+`GroqPlantAdvisor` est le fournisseur actif (`AI_PROVIDER=groq`). Sa configuration repose sur :
 
 - `GROQ_API_KEY` ;
 - `GROQ_BASE_URL` ;
@@ -326,7 +320,7 @@ La suite Pest couvre notamment :
 - catalogue, stock, validation et autorisations ;
 - formulaire public, token et suivi ;
 - règles de préfiltrage ;
-- faux conseiller et fournisseur Groq simulé ;
+- fournisseur Groq simulé avec `Http::fake()` ;
 - traitement du Job, erreurs, déduplication et concurrence ;
 - schéma de base simplifié ;
 - formatage monétaire en MAD ;
@@ -372,7 +366,7 @@ Le prix et le stock sont malgré tout utiles au MVP : le prix présente l’offr
 | Liaison IA | `app/Providers/AppServiceProvider.php` |
 | Conseil asynchrone | `app/Jobs/GeneratePlantAdviceJob.php` |
 | Préfiltrage | `app/Services/PlantEligibilityService.php` |
-| Fournisseurs | `app/Services/PlantAdvisor.php`, `FakePlantAdvisor.php`, `GroqPlantAdvisor.php` |
+| Fournisseur | `app/Services/PlantAdvisor.php`, `GroqPlantAdvisor.php` |
 | Domaine | `app/Models/`, `app/Enums/` |
 | Validation HTTP | `app/Http/Requests/` |
 | Pages | `resources/views/` |
@@ -430,7 +424,7 @@ php artisan migrate:fresh --seed
 docker compose config
 ```
 
-Si les migrations changent, elles doivent fonctionner sur une base vide MySQL 8.4 et rester réversibles. Si l’IA change, les tests doivent rester sans réseau et utiliser des réponses HTTP simulées ou `FakePlantAdvisor`.
+Si les migrations changent, elles doivent fonctionner sur une base vide MySQL 8.4 et rester réversibles. Si l’IA change, les tests doivent rester sans réseau et utiliser `Http::fake()`.
 
 ## Consigne prête à joindre à une demande ChatGPT
 

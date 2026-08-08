@@ -62,9 +62,9 @@ php artisan queue:work --sleep=3 --tries=3 --timeout=90
 | `CACHE_STORE` | `file` | Stocke le cache sous `storage/framework/cache`. |
 | `SESSION_DRIVER` | `file` | Stocke les sessions sous `storage/framework/sessions`. |
 | `MAIL_MAILER` | `log` | Écrit les emails dans les logs. |
-| `AI_PROVIDER` | `fake` | Utilise le conseiller déterministe. |
+| `AI_PROVIDER` | `groq` | Utilise `GroqPlantAdvisor`, le fournisseur unique. |
 | `ADVICE_MAX_RECOMMENDATIONS` | `3` | Limite le nombre de recommandations persistées. |
-| `GROQ_API_KEY` | vide | Clé secrète locale, requise seulement en mode Groq. |
+| `GROQ_API_KEY` | vide | Clé secrète locale requise pour traiter une demande. |
 | `GROQ_MODEL` | `openai/gpt-oss-20b` | Modèle demandé au endpoint Groq. |
 
 Après une modification de `.env` dans un environnement qui a mis la configuration en cache :
@@ -79,9 +79,9 @@ Le worker charge la configuration au démarrage. Il faut donc le redémarrer apr
 docker compose restart queue-worker
 ```
 
-## Activer Groq
+## Configurer Groq
 
-Placez la clé uniquement dans `.env` :
+Groq est déjà le fournisseur configuré par défaut. Placez la clé uniquement dans `.env` :
 
 ```dotenv
 AI_PROVIDER=groq
@@ -89,12 +89,6 @@ GROQ_API_KEY=votre-cle-locale
 ```
 
 Puis videz les caches et redémarrez le worker. Ne placez jamais la clé dans `.env.example`, un fichier Markdown, une commande copiée dans un ticket ou un commit.
-
-Pour revenir au mode sans réseau :
-
-```dotenv
-AI_PROVIDER=fake
-```
 
 Les demandes déjà terminées ne sont pas retraitées. Une nouvelle demande utilise le fournisseur chargé par le worker au moment de son exécution.
 
@@ -114,6 +108,10 @@ docker compose exec app php artisan manager:create
 
 Le seeder utilise `MANAGER_*`. Il ne crée rien lorsque `MANAGER_PASSWORD` est vide, afin que le dépôt ne contienne pas d’identifiants par défaut exploitables.
 
+## Consulter et restaurer une archive
+
+Après connexion, ouvrez `/admin/plants`, puis **Voir les archives**, ou directement `/admin/plants/archived`. La page utilise une recherche simple et affiche les fiches supprimées logiquement. Le bouton **Restaurer la fiche** remet `deleted_at` à `NULL` sans réactiver la plante. Pour la proposer à nouveau, ouvrez sa fiche dans le catalogue, cochez l’option de proposition et enregistrez.
+
 ## Comprendre une modification type
 
 Pour ajouter un champ catalogue, il faut en général toucher :
@@ -128,7 +126,7 @@ Pour ajouter un champ catalogue, il faut en général toucher :
 
 Pour ajouter une règle de recommandation, modifiez `PlantEligibilityService`, sa configuration éventuelle et ses tests unitaires. Si la règle doit rester vraie après l’appel IA, vérifiez que le Job réutilise `isEligible()` lors de la transaction.
 
-Pour changer le format de réponse du conseiller, mettez à jour l’interface documentée, le fake, Groq, la validation du Job et les tests des deux fournisseurs. Laravel doit rester capable de rejeter une sortie externe invalide.
+Pour changer le format de réponse du conseiller, mettez à jour l’interface documentée, `GroqPlantAdvisor`, la validation du Job et les tests HTTP simulés. Laravel doit rester capable de rejeter une sortie externe invalide.
 
 ## Commandes de validation
 

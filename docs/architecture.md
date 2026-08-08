@@ -17,9 +17,8 @@ Laravel / PHP-FPM 8.3
    v               v
 MySQL 8.4 <----- queue-worker Laravel
                        |
-                       | selon AI_PROVIDER
-                       +--> FakePlantAdvisor
-                       `--> API Groq
+                       | fournisseur Groq unique
+                       `--> GroqPlantAdvisor --> API Groq
 ```
 
 `app` et `queue-worker` utilisent la même image Docker. Le premier répond aux requêtes web ; le second exécute `php artisan queue:work`. MySQL stocke le domaine et la file de tâches. Nginx expose uniquement le dossier `public/`.
@@ -98,7 +97,7 @@ AND adult_width_cm <= limite largeur
 AND maintenance_level <= disponibilité d'entretien
 ```
 
-Le tri par identifiant rend le résultat stable pour le fake et pour les tests. Si la configuration des limites manque ou contient un type inattendu, le service refuse la plante. Ce comportement « fermé » évite d’élargir les recommandations lors d’une erreur de configuration.
+Le tri par identifiant rend le résultat stable pour Groq et pour les tests. Si la configuration des limites manque ou contient un type inattendu, le service refuse la plante. Ce comportement « fermé » évite d’élargir les recommandations lors d’une erreur de configuration.
 
 ## Contrat avec les conseillers
 
@@ -109,13 +108,9 @@ Le tri par identifiant rend le résultat stable pour le fake et pour les tests. 
 
 Il retourne un tableau avec `space_summary`, `general_advice` et `recommendations`. Chaque recommandation contient `plant_id`, `rank` et `reason`.
 
-### Fake
+### Groq, fournisseur unique
 
-`FakePlantAdvisor` prend les premières candidates, limite leur nombre et attribue des rangs séquentiels. Son absence de réseau rend les tests rapides et reproductibles.
-
-### Groq
-
-`GroqPlantAdvisor` utilise le client HTTP de Laravel et le endpoint `/chat/completions`. Il demande une réponse conforme à un schéma JSON strict et exige des textes français. Il transmet les propriétés botaniques nécessaires, sans prix, stock, nom du visiteur ni email.
+`GroqPlantAdvisor` est l’unique implémentation active de `PlantAdvisor`. Il utilise le client HTTP de Laravel et le endpoint `/chat/completions`. Il demande une réponse conforme à un schéma JSON strict et exige des textes français. Il transmet les propriétés botaniques nécessaires, sans prix, stock, nom du visiteur ni email.
 
 Le schéma demandé à Groq améliore la régularité de la sortie. Il ne remplace pas les contrôles Laravel, car un fournisseur externe peut échouer, changer ou renvoyer une valeur pourtant bien formée mais interdite.
 
@@ -177,6 +172,7 @@ Tables techniques de Laravel Queue. `jobs` contient les messages en attente ou r
 - Les formulaires Blade incluent un token CSRF.
 - Les routes d’administration exigent `auth` et, sauf le profil, `verified`.
 - Les policies autorisent les opérations administratives aux utilisateurs authentifiés et vérifiés.
+- Le catalogue courant exclut les lignes archivées ; `/admin/plants/archived` les expose au gérant et `restore` enlève l’archive sans réactiver la fiche.
 - Les routes publiques sensibles ont un rate limit.
 - Blade échappe les textes avec `{{ ... }}`, y compris les textes du conseiller.
 - `SecurityHeaders` ajoute les protections de type MIME, framing, referrer et permissions navigateur.

@@ -28,6 +28,7 @@ Le gérant utilise un compte `User` authentifié par session. Il peut :
 - créer, modifier, rechercher et filtrer des plantes ;
 - mettre à jour le prix et le stock ;
 - désactiver ou archiver une plante ;
+- consulter les archives et restaurer une fiche sans la réactiver automatiquement ;
 - consulter l’historique et le détail des demandes ;
 - gérer son profil et son mot de passe.
 
@@ -60,7 +61,7 @@ Elle ne peut pas :
 - rendre éligible une plante inactive, épuisée ou incompatible ;
 - inventer une plante qui serait ensuite ajoutée au catalogue.
 
-`FakePlantAdvisor` produit une réponse déterministe pour le développement et les tests. `GroqPlantAdvisor` appelle le endpoint Groq seulement lorsque `AI_PROVIDER=groq` et qu’une clé locale existe.
+`GroqPlantAdvisor` est le fournisseur unique. Il appelle le endpoint Groq avec une clé locale et les tests simulent le transport HTTP avec `Http::fake()`. Il ne reçoit jamais de nom, d’email, de prix ou de stock.
 
 ## Pourquoi un monolithe Laravel
 
@@ -93,8 +94,8 @@ Une API séparée, Sanctum ou une SPA ajouteraient une seconde surface d’authe
 - token public non dérivé de l’identifiant SQL ;
 - page de suivi avec polling ;
 - préfiltrage déterministe ;
-- queue, retries et fake IA ;
-- fournisseur Groq optionnel avec réponse JSON structurée ;
+- queue, retries et appel Groq ;
+- fournisseur Groq avec réponse JSON structurée ;
 - validation défensive et persistance transactionnelle ;
 - historique simple pour le gérant ;
 - en-têtes de sécurité et tests automatisés.

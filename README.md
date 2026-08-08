@@ -166,13 +166,13 @@ Les plantes inactives ou en rupture restent dans la base mais ne seront pas cand
 
 Le formulaire public est disponible sur `/conseil`, sans création de compte. Il collecte l’environnement, l’exposition, la taille de l’espace, l’entretien disponible et une description libre. Le nom et l’email sont facultatifs ; ces coordonnées ne sont pas envoyées au fournisseur IA.
 
-Une soumission valide crée une demande au statut `PENDING` et un token public aléatoire de 64 caractères hexadécimaux, puis redirige vers `/conseil/suivi/{token}`. Cette page affiche l’état courant et interroge le point `/conseil/suivi/{token}/status` avec un polling limité, sans exposer les données personnelles de la demande. Le traitement asynchrone utilise le fake par défaut ; Groq est une option explicite.
+Une soumission valide crée une demande au statut `PENDING` et un token public aléatoire de 64 caractères hexadécimaux, puis redirige vers `/conseil/suivi/{token}`. Cette page affiche l’état courant et interroge le point `/conseil/suivi/{token}/status` avec un polling limité, sans exposer les données personnelles de la demande. Le traitement asynchrone utilise Groq, le fournisseur unique.
 
 Lorsque le traitement est terminé, la page présente le résumé, les recommandations validées, les raisons, les informations d’entretien et la quantité observée. Le gérant retrouve l’historique simple dans `/admin/advice-requests`.
 
 ## Parcours de démonstration
 
-Le fake permet une démonstration complète et sans accès réseau :
+La démonstration utilise Groq et nécessite une clé locale dans `.env` :
 
 ```bash
 docker compose up -d
@@ -196,7 +196,7 @@ docker compose logs --tail=50 queue-worker
 
 La configuration utilise `QUEUE_CONNECTION=database`. La migration technique crée `jobs` et `failed_jobs`.
 
-Les nouvelles demandes sont placées dans la queue par `GeneratePlantAdviceJob`. Le fournisseur par défaut de `.env.example` est `FakePlantAdvisor` (`AI_PROVIDER=fake`) : il est déterministe, n’appelle aucun réseau et ne reçoit que les candidates préfiltrées par Laravel. `PlantEligibilityService` applique les contraintes d’activité, de stock, d’environnement, d’exposition, d’espace et d’entretien. Le Job revalide directement la structure, les identifiants, les doublons et la limite avant la persistance transactionnelle des recommandations et du snapshot de quantité.
+Les nouvelles demandes sont placées dans la queue par `GeneratePlantAdviceJob`. `GroqPlantAdvisor` (`AI_PROVIDER=groq`) ne reçoit que les candidates préfiltrées par Laravel. `PlantEligibilityService` applique les contraintes d’activité, de stock, d’environnement, d’exposition, d’espace et d’entretien. Le Job revalide directement la structure, les identifiants, les doublons et la limite avant la persistance transactionnelle des recommandations et du snapshot de quantité.
 
 Vérifiez le worker Docker :
 
@@ -211,9 +211,9 @@ Lancez un worker ponctuel :
 docker compose exec app php artisan queue:work --once
 ```
 
-## Fournisseur Groq optionnel
+## Fournisseur Groq
 
-Le fake reste actif avec `AI_PROVIDER=fake`. Pour un essai manuel, fournissez la clé uniquement dans l’environnement local puis activez Groq :
+Fournissez la clé uniquement dans l’environnement local :
 
 ```bash
 AI_PROVIDER=groq GROQ_API_KEY=... php artisan queue:work --once

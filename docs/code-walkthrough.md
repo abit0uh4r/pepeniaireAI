@@ -290,17 +290,12 @@ interface PlantAdvisor
 
 ```php
 return match (config('advice.ai_provider')) {
-    'fake' => new FakePlantAdvisor(...),
     'groq' => new GroqPlantAdvisor(...),
-    default => throw new InvalidArgumentException(...),
+    default => throw new InvalidArgumentException('Only Groq is supported.'),
 };
 ```
 
 Le Job ne connaît ni HTTP ni Groq. Il demande un conseil à l’objet que Laravel lui injecte.
-
-### `FakePlantAdvisor`
-
-Le fake prend les premières candidates et renvoie un texte fixe en français. Il facilite les tests et la démonstration, car deux exécutions avec les mêmes données donnent le même résultat sans réseau.
 
 ### `GroqPlantAdvisor`
 
@@ -424,6 +419,8 @@ Le prix utilise une valeur décimale. `MoneyFormatter` l’affiche en MAD sans c
 
 L’archivage combine deux actions : le contrôleur désactive la plante puis appelle `delete()`. Le trait `SoftDeletes` remplit `deleted_at` au lieu de supprimer la ligne. L’historique des recommandations peut donc retrouver une plante archivée.
 
+Le gérant peut ensuite ouvrir `/admin/plants/archived`. `PlantController::archived()` utilise `onlyTrashed()` pour ne charger que les fiches archivées. Le bouton de restauration utilise une route `withTrashed()` afin que Laravel puisse retrouver la ligne malgré `deleted_at`. `restore()` enlève l’archive, mais conserve `is_active = false` : la remise en ligne reste une décision explicite du gérant.
+
 ## 14. Breeze et le compte gérant
 
 Breeze fournit les contrôleurs et vues de connexion, vérification d’email, mot de passe oublié et profil. Le projet a retiré les routes d’inscription.
@@ -478,7 +475,7 @@ GitHub Actions reconstruit le projet sur une machine neuve. La CI installe les d
 |---|---|---|
 | Ajouter un champ plante | migration | modèle, Request, Blade, factory, seeder, tests |
 | Changer une règle d’éligibilité | `PlantEligibilityService` | `config/advice.php`, tests unitaires et Job |
-| Modifier la réponse IA | `PlantAdvisor` et Job | fake, Groq, page de suivi, tests |
+| Modifier la réponse IA | `PlantAdvisor` et Job | Groq, page de suivi, tests HTTP simulés |
 | Ajouter une page admin | `routes/web.php` | contrôleur, policy, vue, test Feature |
 | Modifier le polling | `advice/track.blade.php` | route `status`, contrôleur, tests publics |
 | Modifier le compte gérant | fichiers Auth/Profile | routes auth, modèle `User`, tests Auth |

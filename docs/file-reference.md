@@ -58,7 +58,7 @@ Les backed enums évitent de disperser des chaînes libres dans le code. Eloquen
 | Fichier | Responsabilité |
 |---|---|
 | `Http/Controllers/Admin/DashboardController.php` | Autorise l’accès et rend le tableau de bord sans statistiques. |
-| `Http/Controllers/Admin/PlantController.php` | Liste, filtre, crée, modifie, désactive et archive les plantes. |
+| `Http/Controllers/Admin/PlantController.php` | Liste, filtre, crée, modifie, désactive, archive et restaure les plantes. |
 | `Http/Controllers/Admin/AdviceRequestController.php` | Liste les demandes avec recherche/statut et affiche une demande avec ses recommandations. |
 
 ### Contrôleurs d’authentification Breeze
@@ -113,7 +113,6 @@ Les attributs `#[Fillable]` définissent les champs acceptés par l’assignatio
 | Fichier | Responsabilité |
 |---|---|
 | `Services/PlantAdvisor.php` | Interface commune aux conseillers. Elle constitue le point d’injection du Job. |
-| `Services/FakePlantAdvisor.php` | Conseiller local déterministe, sans réseau. |
 | `Services/GroqPlantAdvisor.php` | Client HTTP Groq, prompt français, schéma JSON et traitement des erreurs réseau/JSON. |
 | `Services/PlantEligibilityService.php` | Toutes les règles déterministes de sélection et de revalidation des plantes. |
 | `Services/ManagerProvisioner.php` | Valide les données du gérant, crée ou met à jour le compte et vérifie son email. |
@@ -126,7 +125,7 @@ Les attributs `#[Fillable]` définissent les champs acceptés par l’assignatio
 
 ### Provider et composants de vue PHP
 
-`Providers/AppServiceProvider.php` lie l’interface `PlantAdvisor` au fake ou à Groq selon `config('advice.ai_provider')`. Le reste du code ne contient donc aucun `if` fournisseur.
+`Providers/AppServiceProvider.php` lie l’interface `PlantAdvisor` à `GroqPlantAdvisor` et refuse toute autre valeur de `config('advice.ai_provider')`. Le reste du code ne contient donc aucun choix de fournisseur.
 
 `View/Components/AppLayout.php` et `View/Components/GuestLayout.php` associent les composants `<x-app-layout>` et `<x-guest-layout>` à leurs vues Blade.
 
@@ -224,7 +223,7 @@ Les seeders sont idempotents : une seconde exécution met à jour les mêmes don
 | `views/dashboard.blade.php` | Accueil de l’administration et accès aux modules. |
 | `views/advice/create.blade.php` | Formulaire public. |
 | `views/advice/track.blade.php` | États, polling Alpine et recommandations finales. |
-| `views/admin/plants/` | Liste, création, édition et fragment de formulaire catalogue. |
+| `views/admin/plants/` | Catalogue courant, archives restaurables, création, édition et fragment de formulaire. |
 | `views/admin/advice-requests/` | Historique et détail d’une demande. |
 | `views/auth/` | Pages Breeze de connexion, vérification et mots de passe. |
 | `views/profile/` | Profil, changement de mot de passe et suppression du compte. |
@@ -263,7 +262,7 @@ Vite produit `public/build/` pendant `npm run build`. Ce dossier dérivé n’a 
 |---|---|
 | `Pest.php` | Configuration globale Pest et traits partagés. |
 | `TestCase.php` | Classe de base qui démarre Laravel pour les tests. |
-| `Unit/Advice/` | Contrats du fake, confidentialité du contexte et client Groq. |
+| `Unit/Advice/` | Contrat du conseiller, confidentialité du contexte et client Groq simulé. |
 | `Unit/Plants/` | Casts/scopes du modèle et règles de préfiltrage. |
 | `Unit/Support/` | Formatage monétaire MAD. |
 | `Feature/Advice/` | Soumission, token, suivi, rate limits, affichage et échappement. |

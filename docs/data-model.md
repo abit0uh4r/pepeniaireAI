@@ -91,6 +91,8 @@ Le stock sert au catalogue et au préfiltrage. La création d’une recommandati
 
 L’index composé sur l’activité, le stock, l’environnement et `deleted_at` aide les recherches de candidates. Eloquent ajoute la condition `deleted_at IS NULL` grâce à `SoftDeletes`.
 
+Une plante archivée est consultable par le gérant sur `/admin/plants/archived`. La restauration remet `deleted_at` à `NULL`, mais conserve `is_active = false` : la fiche doit être réactivée explicitement avant de redevenir candidate.
+
 ## Table `advice_requests`
 
 ### Entrée du visiteur

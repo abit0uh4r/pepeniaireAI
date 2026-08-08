@@ -30,8 +30,7 @@ Documenter toute nouvelle décision structurante dans `docs/technical-decisions.
 - Pest pour les tests ;
 - Docker Compose pour l’environnement local ;
 - GitHub Actions pour l’intégration continue ;
-- `FakePlantAdvisor` par défaut en développement et dans les tests ;
-- `GroqPlantAdvisor` disponible uniquement par activation explicite ;
+- `GroqPlantAdvisor` comme fournisseur IA unique ;
 
 ## Choix interdits
 
@@ -45,7 +44,7 @@ Ne pas laisser un fournisseur IA écrire dans la base, modifier le stock, choisi
 - Les Form Requests valident et normalisent les entrées HTTP.
 - Les Policies et les middlewares contrôlent l’accès à l’administration.
 - `PlantEligibilityService` applique toutes les contraintes déterministes avant l’appel au conseiller.
-- `PlantAdvisor`, `FakePlantAdvisor`, `GroqPlantAdvisor` et `PlantEligibilityService` résident directement dans `app/Services`.
+- `PlantAdvisor`, `GroqPlantAdvisor` et `PlantEligibilityService` résident directement dans `app/Services`.
 - Ne pas créer de dossiers `Actions`, `Contracts` ou `DTOs` pour le MVP.
 - Le Job orchestre le traitement et revalide lui-même la structure IA, les identifiants candidats, l’état actif, le stock, les doublons et la limite de résultats.
 - Une transaction courte persiste le résultat final. Aucun appel externe ne s’exécute dans une transaction SQL.
@@ -107,9 +106,8 @@ Une erreur terminale produit `FAILED`. Une absence de candidate produit `FAILED`
 
 ## Conseillers IA
 
-- Lier `PlantAdvisor` à `FakePlantAdvisor` dans les environnements local et test.
-- Produire des réponses déterministes dans le fake ; couvrir aussi les identifiants inconnus, doublons et sorties invalides.
-- Garder toute dépendance Groq hors des phases initiales.
+- Lier `PlantAdvisor` à `GroqPlantAdvisor` dans l’application.
+- Simuler les réponses HTTP Groq avec `Http::fake()` dans les tests ; aucun appel réseau réel n’est autorisé dans la suite.
 - Valider la sortie du conseiller indépendamment de la validation éventuelle du SDK.
 - Ne jamais faire confiance au rang, au stock, au prix, au nom ou aux propriétés renvoyés par l’IA.
 
@@ -137,7 +135,7 @@ Une erreur terminale produit `FAILED`. Une absence de candidate produit `FAILED`
 - Écrire les tests avec Pest.
 - Ajouter un test pour chaque règle métier, autorisation, transition d’état et cas d’échec modifiés.
 - Utiliser les factories pour préparer les données.
-- Utiliser `Queue::fake()` pour tester le dispatch et le vrai Job avec `FakePlantAdvisor` pour tester l’intégration.
+- Utiliser `Queue::fake()` pour tester le dispatch et `Http::fake()` pour tester l’intégration Groq sans réseau.
 - Interdire tout appel réseau dans la suite de tests.
 - Couvrir au minimum : plante inactive, stock nul, identifiant inventé, doublon, dépassement de limite, absence de candidate, sortie invalide, retry et exécution concurrente.
 - Vérifier le snapshot de quantité sans comparaison avec le stock courant dans l’interface MVP.
