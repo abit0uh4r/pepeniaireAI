@@ -34,6 +34,11 @@ class PlantPolicy
         return $this->canManage($user);
     }
 
+    public function restore(User $user, Plant $plant): bool
+    {
+        return $this->canManage($user);
+    }
+
     private function canManage(User $user): bool
     {
         return $user->email_verified_at !== null;

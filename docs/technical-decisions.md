@@ -206,3 +206,9 @@ Ils devront être décidés avant la phase qui les utilise.
 Les montants sont stockés comme des décimaux SQL sans changement de schéma et sont affichés en dirhams marocains (`MAD`). Le formateur de prix conserve les valeurs décimales sous forme de chaînes afin de ne pas introduire de flottants dans la présentation.
 
 Mailpit est retiré de l’environnement local à la demande du porteur du projet. Laravel utilise `MAIL_MAILER=log` ; aucun port SMTP ou volume Mailpit ne fait partie de Docker Compose.
+
+### TD-021 : Archives de plantes restaurables
+
+Les plantes archivées restent accessibles dans une page d’administration dédiée (`/admin/plants/archived`). Cette page utilise `onlyTrashed()` pour préserver l’historique des recommandations et permet une restauration contrôlée par le gérant vérifié.
+
+La restauration enlève uniquement `deleted_at` et laisse `is_active` à `false`. Le gérant doit donc réactiver explicitement la fiche avant qu’elle puisse redevenir candidate aux conseils. Cette séparation évite qu’une restauration historique republie automatiquement une plante sans vérification du stock et des caractéristiques.

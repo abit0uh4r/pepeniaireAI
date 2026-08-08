@@ -319,3 +319,7 @@ Les sessions et le cache utilisent des fichiers. Redis, Horizon, Sanctum, React,
 - [Plan d’implémentation](docs/implementation-plan.md)
 - `docs/Cahier_des_Charges_Pepiniere_IA.docx`
 - `docs/architecture-pepiniere-ia.png`
+
+## Archives du catalogue
+
+Depuis `/admin/plants`, le lien **Voir les archives** ouvre `/admin/plants/archived`. Le gérant peut y rechercher les fiches archivées et les restaurer. La restauration enlève la suppression logique, mais laisse la plante inactive jusqu’à sa réactivation explicite.

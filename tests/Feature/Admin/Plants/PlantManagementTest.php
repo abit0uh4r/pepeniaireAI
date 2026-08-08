@@ -119,3 +119,34 @@ test('archiving a plant uses soft delete and preserves its row', function () {
 
     $this->assertSoftDeleted('plants', ['id' => $plant->id]);
 });
+
+test('a manager can browse archived plants and restore one without activating it', function () {
+    $plant = Plant::factory()->create([
+        'name' => 'Figuier archive',
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($this->manager)
+        ->delete(route('admin.plants.destroy', $plant));
+
+    $this->actingAs($this->manager)
+        ->get(route('admin.plants.archived'))
+        ->assertOk()
+        ->assertSee('Figuier archive');
+
+    $this->actingAs($this->manager)
+        ->patch(route('admin.plants.restore', $plant))
+        ->assertRedirect(route('admin.plants.archived'))
+        ->assertSessionHas('status');
+
+    expect($plant->refresh()->deleted_at)->toBeNull()
+        ->and($plant->is_active)->toBeFalse();
+});
+
+test('guests cannot browse or restore archived plants', function () {
+    $plant = Plant::factory()->create();
+    $plant->delete();
+
+    $this->get(route('admin.plants.archived'))->assertRedirect(route('login'));
+    $this->patch(route('admin.plants.restore', $plant))->assertRedirect(route('login'));
+});
