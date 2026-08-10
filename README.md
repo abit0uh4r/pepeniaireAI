@@ -196,7 +196,7 @@ docker compose logs --tail=50 queue-worker
 
 La configuration utilise `QUEUE_CONNECTION=database`. La migration technique crée `jobs` et `failed_jobs`.
 
-Les nouvelles demandes sont placées dans la queue par `GeneratePlantAdviceJob`. Le fournisseur par défaut de `.env.example` est `FakePlantAdvisor` (`AI_PROVIDER=fake`) : il est déterministe, n’appelle aucun réseau et ne reçoit que les candidates préfiltrées par Laravel. `PlantEligibilityService` applique les contraintes d’activité, de stock, d’environnement, d’exposition, d’espace et d’entretien. Le Job revalide directement la structure, les identifiants, les doublons et la limite avant la persistance transactionnelle des recommandations et du snapshot de quantité.
+Les nouvelles demandes sont placées dans la queue par `GeneratePlantAdviceJob`. Le fournisseur par défaut de `.env.example` est `FakePlantAdvisor` (`AI_PROVIDER=fake`) : il est déterministe, n’appelle aucun réseau et ne reçoit que les candidates préfiltrées par Laravel. En mode `AI_PROVIDER=groq`, `GroqPlantAdvisor` utilise un Agent du SDK officiel `laravel/ai` avec une sortie structurée. `PlantEligibilityService` applique les contraintes d’activité, de stock, d’environnement, d’exposition, d’espace et d’entretien. Le Job revalide directement la structure, les identifiants, les doublons et la limite avant la persistance transactionnelle des recommandations et du snapshot de quantité.
 
 Vérifiez le worker Docker :
 
@@ -219,7 +219,7 @@ Le fake reste actif avec `AI_PROVIDER=fake`. Pour un essai manuel, fournissez la
 AI_PROVIDER=groq GROQ_API_KEY=... php artisan queue:work --once
 ```
 
-Les variables `GROQ_MODEL`, `GROQ_BASE_URL`, `GROQ_TIMEOUT` et `GROQ_MAX_TOKENS` sont documentées dans `.env.example`. Le prompt demande à Groq de rédiger exclusivement en français les résumés, conseils et raisons. Les réponses déjà enregistrées ne sont pas retraduites. La CI et les tests n’appellent jamais le réseau Groq.
+Les variables `GROQ_MODEL`, `GROQ_BASE_URL`, `GROQ_TIMEOUT` et `GROQ_MAX_TOKENS` sont documentées dans `.env.example`, tandis que `config/ai.php` configure le fournisseur Groq du SDK. L’Agent demande à Groq de rédiger exclusivement en français les résumés, conseils et raisons. Les réponses déjà enregistrées ne sont pas retraduites. La CI et les tests utilisent le fake Agent et n’appellent jamais le réseau Groq.
 
 Les réponses publiques de suivi utilisent des tokens aléatoires et sont envoyées avec `Cache-Control: private, no-store`. L’application ajoute également des en-têtes de sécurité communs sur ses réponses HTTP.
 

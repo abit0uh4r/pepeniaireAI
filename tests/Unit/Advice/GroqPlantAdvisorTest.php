@@ -1,5 +1,6 @@
 <?php
 
+use App\Ai\Agents\PlantAdviceAgent;
 use App\Enums\Exposure;
 use App\Enums\Level;
 use App\Enums\PlantEnvironment;
@@ -8,8 +9,7 @@ use App\Models\Plant;
 use App\Services\GroqPlantAdvisor;
 use App\Services\PlantAdvisor;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Http\Client\Request;
-use Illuminate\Support\Facades\Http;
+use Illuminate\JsonSchema\JsonSchemaTypeFactory;
 
 function groqAdviceContext(): array
 {
@@ -25,11 +25,8 @@ function groqAdviceContext(): array
 function groqAdvisor(): GroqPlantAdvisor
 {
     return new GroqPlantAdvisor(
-        apiKey: 'test-groq-key',
-        baseUrl: 'https://groq.test/openai/v1',
         model: 'openai/gpt-oss-20b',
         timeout: 7,
-        maxTokens: 900,
     );
 }
 
@@ -41,7 +38,7 @@ test('the groq provider is opt-in and the fake remains the default', function ()
     expect(app(PlantAdvisor::class))->toBeInstanceOf(GroqPlantAdvisor::class);
 });
 
-test('it sends only the request context and prefiltered plant fields', function () {
+test('it sends only the request context and prefiltered plant fields to the Laravel AI agent', function () {
     $plant = Plant::factory()->create([
         'name' => 'Ficus test',
         'species' => 'Ficus elastica',
@@ -53,71 +50,48 @@ test('it sends only the request context and prefiltered plant fields', function 
         'adult_height_cm' => 80,
         'adult_width_cm' => 50,
     ]);
-    $content = json_encode([
+    PlantAdviceAgent::fake([[
         'space_summary' => 'Espace moyen',
         'general_advice' => 'Conseil général',
         'recommendations' => [['plant_id' => $plant->id, 'rank' => 1, 'reason' => 'Bonne adaptation.']],
-    ], JSON_THROW_ON_ERROR);
-
-    Http::fake([
-        'https://groq.test/*' => Http::response([
-            'choices' => [['message' => ['content' => $content]]],
-        ]),
-    ]);
+    ]])->preventStrayPrompts();
 
     $result = groqAdvisor()->advise(groqAdviceContext(), new Collection([$plant]));
 
     expect($result['recommendations'][0]['plant_id'])->toBe($plant->id);
 
-    Http::assertSent(function (Request $request) use ($plant): bool {
-        $body = $request->data();
-        $systemMessage = $body['messages'][0]['content'];
-        $message = $body['messages'][1]['content'];
+    PlantAdviceAgent::assertPrompted(function ($prompt) use ($plant): bool {
+        $payload = json_decode($prompt->prompt, true, 512, JSON_THROW_ON_ERROR);
+        $message = $prompt->prompt;
 
-        return $body['model'] === 'openai/gpt-oss-20b'
-            && $body['response_format']['type'] === 'json_schema'
-            && str_contains($systemMessage, 'exclusivement en français')
+        return $prompt->model === 'openai/gpt-oss-20b'
+            && $prompt->provider->name() === 'groq'
             && str_contains($message, 'Ficus test')
             && str_contains($message, (string) $plant->id)
             && ! str_contains($message, 'customer_email')
             && ! str_contains($message, 'price')
             && ! str_contains($message, 'stock_quantity')
-            && ! str_contains($message, 'pet_safe');
+            && ! str_contains($message, 'pet_safe')
+            && $payload['request'] === groqAdviceContext();
     });
 });
 
-test('it rejects an invalid json response before the job can persist it', function () {
-    Http::fake([
-        'https://groq.test/*' => Http::response([
-            'choices' => [['message' => ['content' => '{invalid']]],
-        ]),
+test('the agent exposes the structured advice fields', function () {
+    $schema = app(JsonSchemaTypeFactory::class);
+    $agent = PlantAdviceAgent::make();
+
+    expect($agent->schema($schema))->toHaveKeys([
+        'space_summary',
+        'general_advice',
+        'recommendations',
+    ]);
+});
+
+test('it converts a provider failure into a sanitized runtime error', function () {
+    PlantAdviceAgent::fake([
+        fn (): never => throw new RuntimeException('secret provider detail'),
     ]);
 
     expect(fn () => groqAdvisor()->advise(groqAdviceContext(), new Collection))
-        ->toThrow(RuntimeException::class, 'JSON valide');
-});
-
-test('it converts an http failure into a sanitized runtime error', function () {
-    Http::fake([
-        'https://groq.test/*' => Http::response(['error' => ['message' => 'secret']], 429),
-    ]);
-
-    try {
-        groqAdvisor()->advise(groqAdviceContext(), new Collection);
-        $message = '';
-    } catch (RuntimeException $exception) {
-        $message = $exception->getMessage();
-    }
-
-    expect($message)->toContain('refusé')->not->toContain('secret');
-});
-
-test('it refuses to call groq without an api key', function () {
-    Http::fake();
-    $advisor = new GroqPlantAdvisor('', 'https://groq.test/openai/v1', 'openai/gpt-oss-20b', 7, 900);
-
-    expect(fn () => $advisor->advise(groqAdviceContext(), new Collection))
-        ->toThrow(RuntimeException::class, 'pas configuré');
-
-    Http::assertNothingSent();
+        ->toThrow(RuntimeException::class, 'refusé');
 });

@@ -43,6 +43,7 @@ CACHE_STORE=file
 SESSION_DRIVER=file
 AI_PROVIDER=fake
 ADVICE_MAX_RECOMMENDATIONS=3
+AI_DEFAULT_PROVIDER=groq
 ```
 
 Le projet ne créera pas de tables `sessions` ou `cache`. Il ne créera `job_batches` qu’en cas d’usage futur des batches. Redis et Horizon restent exclus.
@@ -53,7 +54,7 @@ Les emails locaux utiliseront le driver `log`. Aucun serveur SMTP de développem
 
 Le code applicatif définit `PlantAdvisor` directement dans `app/Services`, à côté de ses implémentations. Le fake constitue l’implémentation par défaut en développement et dans les tests. Aucun dossier `Contracts`, `DTOs` ou `Actions` n’est utilisé pour le MVP ; les échanges avec le conseiller utilisent des tableaux documentés par PHPDoc.
 
-La première version ne dépendra d’aucun SDK de fournisseur. Le choix d’un client HTTP ou d’un SDK pour Groq interviendra dans une phase séparée. Cette décision évite de coupler le domaine au « SDK laravel/ai » cité dans le cahier des charges avant d’avoir validé sa compatibilité et son utilité.
+Le cahier des charges impose l’utilisation du SDK officiel `laravel/ai`. Le domaine reste découplé du SDK grâce au contrat `PlantAdvisor` : `GroqPlantAdvisor` adapte l’Agent Laravel AI, tandis que `FakePlantAdvisor` reste déterministe en local et dans les tests. Aucun dossier `Contracts`, `DTOs` ou `Actions` supplémentaire n’est créé pour cette intégration.
 
 ### TD-006 : Limite de confiance IA
 
@@ -151,9 +152,9 @@ La persistance est exécutée dans une transaction SQL courte après l’appel a
 
 ### TD-017 : Fournisseur Groq opt-in
 
-`GroqPlantAdvisor` utilise le endpoint HTTP compatible OpenAI `https://api.groq.com/openai/v1/chat/completions` avec un token Bearer lu depuis `config/advice.php`. Le modèle, l’URL, le timeout et la limite de tokens sont configurables ; aucun SDK supplémentaire n’est requis.
+`GroqPlantAdvisor` utilise le SDK officiel `laravel/ai` avec le fournisseur `Lab::Groq`. L’Agent `App\Ai\Agents\PlantAdviceAgent` porte les instructions francophones, le schéma de sortie structurée, le timeout et la limite de tokens. La clé, l’URL et le modèle sont configurés dans `config/ai.php` et les variables d’environnement correspondantes.
 
-Le mode `json_schema` est demandé lorsque le modèle configuré le supporte, puis la réponse décodée est transmise au Job pour validation. Le fournisseur ne reçoit ni nom ni email, et seulement les plantes candidates avec leurs propriétés botaniques utiles. `AI_PROVIDER=fake` reste le défaut local et test ; Groq est activé explicitement uniquement dans un environnement disposant d’une clé secrète.
+Le SDK demande une sortie structurée JSON lorsque le modèle le supporte. La réponse est ensuite transmise au Job pour validation métier indépendante. Le fournisseur ne reçoit ni nom ni email, et seulement les plantes candidates avec leurs propriétés botaniques utiles. `AI_PROVIDER=fake` reste le défaut local et test ; Groq est activé explicitement uniquement dans un environnement disposant d’une clé secrète.
 
 ### TD-018 : En-têtes et cache des pages publiques
 
@@ -173,7 +174,7 @@ L’interface adopte un système visuel commun « carnet botanique » réalisé 
 | Authentification | Le diagramme place Sanctum dans le backend ; le mandat impose une session web avec Breeze Blade. | Breeze Blade et sessions, sans Sanctum. |
 | Inscription | Le cahier des charges dit « désactivable en production » ; le mandat exige qu’elle soit désactivée. | Aucune route publique d’inscription dans tous les environnements. |
 | Fournisseur réel | Le cahier des charges inclut un fournisseur réel dans le MVP et place l’IA réelle avant les règles défensives. | Fake d’abord ; préfiltrage et validation défensive avant Groq ; Groq après validation d’une phase dédiée. |
-| SDK IA | Le cahier cite `laravel/ai` sans décision motivée. | Contrat interne et client HTTP Laravel ; aucun SDK Groq supplémentaire. |
+| SDK IA | Le cahier impose une fonctionnalité IA via `laravel/ai`, alors que l’ancienne implémentation utilisait le client HTTP Laravel. | Installer `laravel/ai`, utiliser un Agent structuré et le cacher derrière `PlantAdvisor`. |
 | Absence de candidate | Le flux parle d’un résultat sans appel IA et la liste des causes présente `NO_ELIGIBLE_PLANTS`. | Résultat `FAILED` avec message nettoyé, sans champ de code. |
 | Tables techniques | Le cahier cite `sessions`, `cache` et `job_batches`, incompatibles ou inutiles avec les réglages imposés. | Créer seulement `jobs` et `failed_jobs`. |
 | Nom du Job | Le diagramme utilise `AnalyzeAdviceRequestJob`, le texte `GeneratePlantAdviceJob`. | Retenir `GeneratePlantAdviceJob`. |

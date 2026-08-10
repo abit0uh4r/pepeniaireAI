@@ -1,11 +1,11 @@
 # Plan
 
-Le projet sera construit par tranches courtes qui laissent toujours le dépôt dans un état testable. Le fake déterministe précède toute intégration Groq, et les règles de préfiltrage comme la validation défensive précèdent tout appel à un fournisseur réel.
+Le projet sera construit par tranches courtes qui laissent toujours le dépôt dans un état testable. Le fake déterministe précède l’activation Groq, et les règles de préfiltrage comme la validation défensive précèdent tout appel à un fournisseur réel.
 
 ## Périmètre
 
-- Inclus : initialisation Laravel, authentification du gérant, catalogue et stock, demandes publiques, queue database, fake IA, préfiltrage, validation et persistance, consultation par token, administration, Docker, CI et documentation.
-- Hors périmètre initial : Groq, inscription publique, comptes visiteurs, paiement, réservation, API REST séparée, SPA, pièces jointes et envoi d’email.
+- Inclus : initialisation Laravel, authentification du gérant, catalogue et stock, demandes publiques, queue database, fake IA, Agent `laravel/ai` pour Groq, préfiltrage, validation et persistance, consultation par token, administration, Docker, CI et documentation.
+- Hors périmètre des phases initiales avant la phase 9 : activation Groq, inscription publique, comptes visiteurs, paiement, réservation, API REST séparée, SPA, pièces jointes et envoi d’email.
 - Reporté après le MVP : relance manuelle, email du lien public, sécurité animale, snapshots de prix, comparaison de stock, filtres par période et statistiques.
 
 ## Arborescence Laravel cible
@@ -19,6 +19,9 @@ app/
 │   └── Requests/
 ├── Jobs/
 │   └── GeneratePlantAdviceJob.php
+├── Ai/
+│   └── Agents/
+│       └── PlantAdviceAgent.php
 ├── Models/
 ├── Policies/
 ├── Providers/
@@ -283,14 +286,15 @@ git diff --check
 
 Critère de sortie : les mêmes contrôles passent localement et dans GitHub Actions, sans réseau IA.
 
-### Phase 9 : Intégrer Groq après validation du MVP fake
+### Phase 9 : Intégrer Groq via le SDK `laravel/ai`
 
-Résultat : `GroqPlantAdvisor` remplace le fake par configuration sans modifier les règles métier.
+Résultat : `GroqPlantAdvisor` utilise l’Agent Laravel AI avec Groq par configuration, sans modifier les règles métier.
 
-- [x] Utiliser le endpoint HTTP compatible OpenAI de Groq sans SDK supplémentaire.
-- [x] Définir timeout, structured output JSON Schema et limites de payload.
+- [x] Installer `laravel/ai` et publier sa configuration.
+- [x] Créer un Agent Laravel avec instructions francophones et structured output.
+- [x] Configurer Groq, le modèle, le timeout et les limites de tokens.
 - [x] Retourner un tableau structuré que le Job revalide.
-- [x] Ajouter des tests HTTP simulés pour succès, indisponibilité, clé absente et JSON invalide.
+- [x] Ajouter des tests du fake Agent sans appel réseau.
 - [x] Garder `AI_PROVIDER=fake` en développement et dans les tests.
 - [ ] Effectuer un test manuel Groq opt-in, hors CI, avec une clé fournie localement.
 

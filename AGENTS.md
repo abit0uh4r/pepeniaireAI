@@ -32,6 +32,7 @@ Documenter toute nouvelle décision structurante dans `docs/technical-decisions.
 - GitHub Actions pour l’intégration continue ;
 - `FakePlantAdvisor` par défaut en développement et dans les tests ;
 - `GroqPlantAdvisor` disponible uniquement par activation explicite ;
+- SDK officiel `laravel/ai` utilisé par `GroqPlantAdvisor` via un Agent structuré ;
 
 ## Choix interdits
 
@@ -45,7 +46,7 @@ Ne pas laisser un fournisseur IA écrire dans la base, modifier le stock, choisi
 - Les Form Requests valident et normalisent les entrées HTTP.
 - Les Policies et les middlewares contrôlent l’accès à l’administration.
 - `PlantEligibilityService` applique toutes les contraintes déterministes avant l’appel au conseiller.
-- `PlantAdvisor`, `FakePlantAdvisor`, `GroqPlantAdvisor` et `PlantEligibilityService` résident directement dans `app/Services`.
+- `PlantAdvisor`, `FakePlantAdvisor`, `GroqPlantAdvisor` et `PlantEligibilityService` résident directement dans `app/Services`. Les Agents du SDK résident dans `app/Ai/Agents`.
 - Ne pas créer de dossiers `Actions`, `Contracts` ou `DTOs` pour le MVP.
 - Le Job orchestre le traitement et revalide lui-même la structure IA, les identifiants candidats, l’état actif, le stock, les doublons et la limite de résultats.
 - Une transaction courte persiste le résultat final. Aucun appel externe ne s’exécute dans une transaction SQL.
@@ -109,7 +110,7 @@ Une erreur terminale produit `FAILED`. Une absence de candidate produit `FAILED`
 
 - Lier `PlantAdvisor` à `FakePlantAdvisor` dans les environnements local et test.
 - Produire des réponses déterministes dans le fake ; couvrir aussi les identifiants inconnus, doublons et sorties invalides.
-- Garder toute dépendance Groq hors des phases initiales.
+- Garder l’appel Groq derrière `PlantAdvisor` et l’activer explicitement ; `FakePlantAdvisor` reste le chemin local et de test.
 - Valider la sortie du conseiller indépendamment de la validation éventuelle du SDK.
 - Ne jamais faire confiance au rang, au stock, au prix, au nom ou aux propriétés renvoyés par l’IA.
 
