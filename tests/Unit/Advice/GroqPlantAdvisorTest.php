@@ -30,11 +30,7 @@ function groqAdvisor(): GroqPlantAdvisor
     );
 }
 
-test('the groq provider is opt-in and the fake remains the default', function () {
-    expect(app(PlantAdvisor::class))->not->toBeInstanceOf(GroqPlantAdvisor::class);
-
-    config()->set('advice.ai_provider', 'groq');
-
+test('the groq provider is bound by default', function () {
     expect(app(PlantAdvisor::class))->toBeInstanceOf(GroqPlantAdvisor::class);
 });
 

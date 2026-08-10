@@ -41,7 +41,6 @@ Les réglages obligatoires seront :
 QUEUE_CONNECTION=database
 CACHE_STORE=file
 SESSION_DRIVER=file
-AI_PROVIDER=fake
 ADVICE_MAX_RECOMMENDATIONS=3
 AI_DEFAULT_PROVIDER=groq
 ```
@@ -52,9 +51,9 @@ Les emails locaux utiliseront le driver `log`. Aucun serveur SMTP de développem
 
 ### TD-005 : Contrat du conseiller
 
-Le code applicatif définit `PlantAdvisor` directement dans `app/Services`, à côté de ses implémentations. Le fake constitue l’implémentation par défaut en développement et dans les tests. Aucun dossier `Contracts`, `DTOs` ou `Actions` n’est utilisé pour le MVP ; les échanges avec le conseiller utilisent des tableaux documentés par PHPDoc.
+Le code applicatif définit `PlantAdvisor` directement dans `app/Services`, à côté de `GroqPlantAdvisor`. Aucun dossier `Contracts`, `DTOs` ou `Actions` n’est utilisé pour le MVP ; les échanges avec le conseiller utilisent des tableaux documentés par PHPDoc.
 
-Le cahier des charges impose l’utilisation du SDK officiel `laravel/ai`. Le domaine reste découplé du SDK grâce au contrat `PlantAdvisor` : `GroqPlantAdvisor` adapte l’Agent Laravel AI, tandis que `FakePlantAdvisor` reste déterministe en local et dans les tests. Aucun dossier `Contracts`, `DTOs` ou `Actions` supplémentaire n’est créé pour cette intégration.
+Le cahier des charges impose l’utilisation du SDK officiel `laravel/ai`. Le domaine reste découplé du SDK grâce au contrat `PlantAdvisor`, que `GroqPlantAdvisor` implémente en adaptant l’Agent Laravel AI. Les tests remplacent l’Agent du SDK par `PlantAdviceAgent::fake()` et ne contactent jamais Groq. Aucun dossier `Contracts`, `DTOs` ou `Actions` supplémentaire n’est créé pour cette intégration.
 
 ### TD-006 : Limite de confiance IA
 
@@ -132,7 +131,7 @@ La commande de référence sera `php artisan test`. Les filtres Pest pourront ac
 
 ### TD-014 : Contrat IA et exécution asynchrone
 
-Le contrat applicatif `PlantAdvisor` reçoit un tableau de contexte ne contenant ni nom ni adresse email, ainsi qu’une collection de plantes candidates fournie par Laravel. `FakePlantAdvisor` est lié par défaut lorsque `AI_PROVIDER=fake` et produit une réponse déterministe sans accès réseau ni écriture en base.
+Le contrat applicatif `PlantAdvisor` reçoit un tableau de contexte ne contenant ni nom ni adresse email, ainsi qu’une collection de plantes candidates fournie par Laravel. Le conteneur Laravel lie ce contrat à `GroqPlantAdvisor`, qui utilise l’Agent structuré du SDK `laravel/ai`.
 
 `GeneratePlantAdviceJob` reçoit l’identifiant de la demande, reconstruit le contexte et demande à `PlantEligibilityService` les candidates au moment de l’exécution. Il utilise la connexion database, possède trois tentatives, un timeout de 90 secondes et des délais de reprise bornés. La validation défensive de la réponse IA réside directement dans le Job avant la persistance transactionnelle.
 
@@ -150,11 +149,11 @@ La validation défensive intégrée au Job écarte chaque entrée invalide (iden
 
 La persistance est exécutée dans une transaction SQL courte après l’appel au conseiller. Les plantes recommandées sont rechargées avec verrouillage, puis leur activité et leur stock sont vérifiés une seconde fois. Chaque recommandation copie uniquement la quantité observée ; aucune écriture ne modifie le stock courant. La contrainte unique `(advice_request_id, plant_id)` protège les replays.
 
-### TD-017 : Fournisseur Groq opt-in
+### TD-017 : Fournisseur Groq unique
 
 `GroqPlantAdvisor` utilise le SDK officiel `laravel/ai` avec le fournisseur `Lab::Groq`. L’Agent `App\Ai\Agents\PlantAdviceAgent` porte les instructions francophones, le schéma de sortie structurée, le timeout et la limite de tokens. La clé, l’URL et le modèle sont configurés dans `config/ai.php` et les variables d’environnement correspondantes.
 
-Le SDK demande une sortie structurée JSON lorsque le modèle le supporte. La réponse est ensuite transmise au Job pour validation métier indépendante. Le fournisseur ne reçoit ni nom ni email, et seulement les plantes candidates avec leurs propriétés botaniques utiles. `AI_PROVIDER=fake` reste le défaut local et test ; Groq est activé explicitement uniquement dans un environnement disposant d’une clé secrète.
+Le SDK demande une sortie structurée JSON lorsque le modèle le supporte. La réponse est ensuite transmise au Job pour validation métier indépendante. Le fournisseur ne reçoit ni nom ni email, et seulement les plantes candidates avec leurs propriétés botaniques utiles. Groq est le fournisseur unique et la clé reste obligatoire uniquement dans l’environnement qui exécute réellement le Job.
 
 ### TD-018 : En-têtes et cache des pages publiques
 
@@ -173,7 +172,7 @@ L’interface adopte un système visuel commun « carnet botanique » réalisé 
 | Backend | Le diagramme affiche « Laravel API » alors que le mandat interdit une API REST séparée. | Backend monolithique Laravel, routes `web`, Blade. |
 | Authentification | Le diagramme place Sanctum dans le backend ; le mandat impose une session web avec Breeze Blade. | Breeze Blade et sessions, sans Sanctum. |
 | Inscription | Le cahier des charges dit « désactivable en production » ; le mandat exige qu’elle soit désactivée. | Aucune route publique d’inscription dans tous les environnements. |
-| Fournisseur réel | Le cahier des charges inclut un fournisseur réel dans le MVP et place l’IA réelle avant les règles défensives. | Fake d’abord ; préfiltrage et validation défensive avant Groq ; Groq après validation d’une phase dédiée. |
+| Fournisseur réel | Le cahier des charges impose une fonctionnalité IA réelle via `laravel/ai`. | Groq est le fournisseur unique ; préfiltrage et validation défensive Laravel restent obligatoires avant toute persistance. |
 | SDK IA | Le cahier impose une fonctionnalité IA via `laravel/ai`, alors que l’ancienne implémentation utilisait le client HTTP Laravel. | Installer `laravel/ai`, utiliser un Agent structuré et le cacher derrière `PlantAdvisor`. |
 | Absence de candidate | Le flux parle d’un résultat sans appel IA et la liste des causes présente `NO_ELIGIBLE_PLANTS`. | Résultat `FAILED` avec message nettoyé, sans champ de code. |
 | Tables techniques | Le cahier cite `sessions`, `cache` et `job_batches`, incompatibles ou inutiles avec les réglages imposés. | Créer seulement `jobs` et `failed_jobs`. |

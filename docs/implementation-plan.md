@@ -1,11 +1,11 @@
 # Plan
 
-Le projet sera construit par tranches courtes qui laissent toujours le dépôt dans un état testable. Le fake déterministe précède l’activation Groq, et les règles de préfiltrage comme la validation défensive précèdent tout appel à un fournisseur réel.
+Le projet sera construit par tranches courtes qui laissent toujours le dépôt dans un état testable. Les règles de préfiltrage et de validation défensive précèdent tout appel à Groq. Les tests remplacent l’Agent Laravel AI par son fake intégré afin de rester sans réseau.
 
 ## Périmètre
 
-- Inclus : initialisation Laravel, authentification du gérant, catalogue et stock, demandes publiques, queue database, fake IA, Agent `laravel/ai` pour Groq, préfiltrage, validation et persistance, consultation par token, administration, Docker, CI et documentation.
-- Hors périmètre des phases initiales avant la phase 9 : activation Groq, inscription publique, comptes visiteurs, paiement, réservation, API REST séparée, SPA, pièces jointes et envoi d’email.
+- Inclus : initialisation Laravel, authentification du gérant, catalogue et stock, demandes publiques, queue database, Agent `laravel/ai` pour Groq, préfiltrage, validation et persistance, consultation par token, administration, Docker, CI et documentation.
+- Hors périmètre des phases initiales avant la phase 9 : activation opérationnelle de Groq, inscription publique, comptes visiteurs, paiement, réservation, API REST séparée, SPA, pièces jointes et envoi d’email.
 - Reporté après le MVP : relance manuelle, email du lien public, sécurité animale, snapshots de prix, comparaison de stock, filtres par période et statistiques.
 
 ## Arborescence Laravel cible
@@ -26,7 +26,6 @@ app/
 ├── Policies/
 ├── Providers/
 └── Services/
-    ├── FakePlantAdvisor.php
     ├── GroqPlantAdvisor.php
     ├── PlantAdvisor.php
     └── PlantEligibilityService.php
@@ -77,7 +76,7 @@ Résultat : Laravel 13 vide fonctionne avec PHP 8.3, Blade, Pest et les réglage
 - [ ] Vérifier la présence de Pest et configurer la suite de base.
 - [ ] Configurer MySQL, les drivers file, la queue database et le driver mail `log` dans `.env.example`.
 - [ ] Générer uniquement les migrations `jobs` et `failed_jobs` nécessaires.
-- [ ] Préparer `config/advice.php` avec `AI_PROVIDER=fake` et la limite de trois recommandations.
+- [ ] Préparer `config/advice.php` avec la limite de trois recommandations et les paramètres Groq.
 - [ ] Confirmer l’absence de React, Vue, Livewire, Inertia, Sanctum, Redis et Horizon.
 
 Validation :
@@ -180,7 +179,7 @@ Résultat : un visiteur soumet une demande, reçoit une URL par token et peut su
 - [x] Ajouter la page Blade de suivi et le point de polling limité.
 - [x] Tester validation, rate limiting, token valide/invalide et absence de fuite d’identifiant.
 
-Le dispatch du Job est volontairement reporté à la phase 6 dédiée à la queue et au `FakePlantAdvisor`.
+Le dispatch du Job est volontairement reporté à la phase 6 dédiée à la queue et à l’intégration du conseiller Groq.
 
 Validation :
 
@@ -195,7 +194,7 @@ npm run build
 
 Critère de sortie : la soumission retourne vite, crée `PENDING`, redirige vers un token non prédictible et expose uniquement un suivi public borné. Le traitement asynchrone est ajouté en phase 6.
 
-Le découpage opérationnel validé pour la suite est : phase 6 queue et `FakePlantAdvisor`, phase 7 préfiltrage métier, phase 8 validation et persistance des recommandations, phase 9 fournisseur Groq, phase 10 sécurité/tests/CI et phase 11 interface finale/démonstration.
+Le découpage opérationnel validé pour la suite est : phase 6 queue et conseiller Groq, phase 7 préfiltrage métier, phase 8 validation et persistance des recommandations, phase 9 fournisseur Groq, phase 10 sécurité/tests/CI et phase 11 interface finale/démonstration.
 
 ### Phase 7 : Implémenter le préfiltrage Laravel
 
@@ -258,7 +257,7 @@ vendor/bin/pint --test
 npm run build
 ```
 
-Critère de sortie : le parcours catalogue → demande → worker → résultat est démontrable avec le fake.
+Critère de sortie : le parcours catalogue → demande → worker → résultat est démontrable avec Groq et une clé locale configurée.
 
 ### Phase 10 : Sécurité, tests et CI
 
@@ -294,9 +293,9 @@ Résultat : `GroqPlantAdvisor` utilise l’Agent Laravel AI avec Groq par config
 - [x] Créer un Agent Laravel avec instructions francophones et structured output.
 - [x] Configurer Groq, le modèle, le timeout et les limites de tokens.
 - [x] Retourner un tableau structuré que le Job revalide.
-- [x] Ajouter des tests du fake Agent sans appel réseau.
-- [x] Garder `AI_PROVIDER=fake` en développement et dans les tests.
-- [ ] Effectuer un test manuel Groq opt-in, hors CI, avec une clé fournie localement.
+- [x] Ajouter des tests avec `PlantAdviceAgent::fake()` sans appel réseau.
+- [x] Lier `PlantAdvisor` à `GroqPlantAdvisor` comme fournisseur unique.
+- [ ] Effectuer un test manuel Groq, hors CI, avec une clé fournie localement.
 
 Validation :
 
@@ -314,7 +313,7 @@ Critère de sortie : la suite automatisée reste sans réseau, et le fournisseur
 - Une dépendance ajoutée introduit un composant interdit ou une version incompatible.
 - Une route publique révèle un identifiant, une donnée personnelle ou une erreur technique.
 - Une migration permet de casser l’historique ou de créer des doublons.
-- Un test passe avec le fake mais masque un appel réseau.
+- Un test d’Agent n’utilise pas `PlantAdviceAgent::fake()` et tente un appel réseau.
 - Un retry laisse une demande bloquée en PROCESSING.
 - Une modification de stock entre l’appel IA et la transaction finale invalide une candidate.
 - Le polling surcharge l’application ou continue après un état terminal.
