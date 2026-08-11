@@ -25,7 +25,6 @@ class StoreAdviceRequest extends FormRequest
     {
         return [
             'customer_name' => ['nullable', 'string', 'max:120'],
-            'customer_email' => ['nullable', 'email', 'max:255'],
             'environment' => [
                 'required',
                 Rule::in([PlantEnvironment::INDOOR->value, PlantEnvironment::OUTDOOR->value]),

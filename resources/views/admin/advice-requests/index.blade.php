@@ -13,7 +13,7 @@
                 <form method="GET" action="{{ route('admin.advice-requests.index') }}" class="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px_auto] md:items-end">
                     <div>
                         <label for="search" class="mb-2 block text-xs font-bold uppercase tracking-[0.15em] text-slate-500">Visiteur</label>
-                        <input id="search" name="search" value="{{ $search }}" type="search" placeholder="Nom ou email" class="block w-full rounded-2xl border-emerald-950/15 bg-white px-4 py-3 text-sm shadow-sm focus:border-emerald-700 focus:ring-emerald-700">
+                        <input id="search" name="search" value="{{ $search }}" type="search" placeholder="Nom du visiteur" class="block w-full rounded-2xl border-emerald-950/15 bg-white px-4 py-3 text-sm shadow-sm focus:border-emerald-700 focus:ring-emerald-700">
                     </div>
                     <div>
                         <label for="status" class="mb-2 block text-xs font-bold uppercase tracking-[0.15em] text-slate-500">État du traitement</label>
@@ -44,7 +44,6 @@
                     <a href="{{ route('admin.advice-requests.show', $request) }}" class="grid gap-4 border-b border-emerald-950/10 px-5 py-5 transition last:border-b-0 hover:bg-lime-50 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_160px_110px_32px] md:items-center md:px-7">
                         <div>
                             <p class="font-bold text-emerald-950">{{ $request->customer_name ?: 'Visiteur anonyme' }}</p>
-                            <p class="mt-1 truncate text-xs text-slate-500">{{ $request->customer_email ?: 'Aucun email' }}</p>
                             <p class="mt-2 text-[0.68rem] font-bold uppercase tracking-wider text-slate-400">{{ $request->created_at->format('d.m.Y · H:i') }}</p>
                         </div>
                         <div class="text-sm">

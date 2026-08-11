@@ -19,7 +19,6 @@ function advicePayload(array $overrides = []): array
 {
     return array_merge([
         'customer_name' => 'Camille',
-        'customer_email' => 'camille@example.test',
         'environment' => PlantEnvironment::INDOOR->value,
         'exposure' => Exposure::PARTIAL_SHADE->value,
         'space_size' => SpaceSize::MEDIUM->value,
@@ -48,21 +47,26 @@ test('a visitor can submit a valid advice request with a secure public token', f
     expect($request->status)->toBe(AdviceRequestStatus::PENDING)
         ->and($request->public_token)->toMatch('/^[a-f0-9]{64}$/')
         ->and($request->public_token)->not->toBe((string) $request->id)
-        ->and($request->customer_email)->toBe('camille@example.test');
+        ->and($request->customer_name)->toBe('Camille');
 });
 
-test('optional visitor contact details can be omitted', function () {
+test('the optional visitor name can be omitted', function () {
     $response = $this->post(route('advice.store'), advicePayload([
         'customer_name' => null,
-        'customer_email' => null,
     ]));
 
     $response->assertRedirect();
 
     $request = AdviceRequest::query()->sole();
 
-    expect($request->customer_name)->toBeNull()
-        ->and($request->customer_email)->toBeNull();
+    expect($request->customer_name)->toBeNull();
+});
+
+test('the public advice form does not collect an email address', function () {
+    $this->get(route('advice.create'))
+        ->assertOk()
+        ->assertDontSee('customer_email')
+        ->assertDontSee('Email de suivi');
 });
 
 test('advice request validation rejects unsupported choices and missing consent', function () {
@@ -87,14 +91,10 @@ test('advice request validation rejects unsupported choices and missing consent'
 
 test('public advice creation is rate limited', function () {
     foreach (range(1, 10) as $attempt) {
-        $this->post(route('advice.store'), advicePayload([
-            'customer_email' => "visitor-{$attempt}@example.test",
-        ]))->assertRedirect();
+        $this->post(route('advice.store'), advicePayload())->assertRedirect();
     }
 
-    $this->post(route('advice.store'), advicePayload([
-        'customer_email' => 'blocked@example.test',
-    ]))->assertTooManyRequests();
+    $this->post(route('advice.store'), advicePayload())->assertTooManyRequests();
 });
 
 test('a valid public token opens the tracking page without exposing the numeric id', function () {

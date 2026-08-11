@@ -27,8 +27,7 @@ final class AdviceRequestController extends Controller
             ->when($status !== null, fn (Builder $query) => $query->where('status', $status->value))
             ->when($search !== '', function (Builder $query) use ($search): void {
                 $query->where(function (Builder $query) use ($search): void {
-                    $query->where('customer_name', 'like', "%{$search}%")
-                        ->orWhere('customer_email', 'like', "%{$search}%");
+                    $query->where('customer_name', 'like', "%{$search}%");
                 });
             })
             ->latest()

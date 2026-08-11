@@ -190,7 +190,7 @@ L’interface adopte un système visuel commun « carnet botanique » réalisé 
 Ces sujets ne bloquent ni l’installation ni le catalogue :
 
 - valeurs des seuils de hauteur et largeur pour SMALL, MEDIUM et LARGE ;
-- collecte facultative du nom et de l’email du visiteur ;
+- collecte facultative du prénom du visiteur ; aucune adresse email visiteur ;
 - ajout de la relance manuelle des demandes échouées ;
 - conservation éventuelle d’une réponse IA brute nettoyée ;
 - sécurité animale (`pet_safe`) et règle BR-06 ;

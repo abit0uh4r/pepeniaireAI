@@ -89,16 +89,11 @@
 
                         <section class="border-t border-slate-100 pt-8">
                             <p class="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">Optionnel</p>
-                            <div class="mt-4 grid gap-5 sm:grid-cols-2">
+                            <div class="mt-4 max-w-xl">
                                 <div>
                                     <label for="customer_name" class="block text-sm font-semibold text-slate-800">Votre prénom</label>
                                     <input id="customer_name" name="customer_name" type="text" maxlength="120" value="{{ old('customer_name') }}" class="mt-2 block w-full rounded-xl border-slate-300 py-3 shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
                                     <x-input-error :messages="$errors->get('customer_name')" class="mt-2" />
-                                </div>
-                                <div>
-                                    <label for="customer_email" class="block text-sm font-semibold text-slate-800">Email de suivi</label>
-                                    <input id="customer_email" name="customer_email" type="email" maxlength="255" value="{{ old('customer_email') }}" class="mt-2 block w-full rounded-xl border-slate-300 py-3 shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
-                                    <x-input-error :messages="$errors->get('customer_email')" class="mt-2" />
                                 </div>
                             </div>
                         </section>

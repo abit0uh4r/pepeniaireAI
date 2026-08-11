@@ -73,7 +73,6 @@
                     <p class="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">Visiteur</p>
                     <dl class="mt-5 space-y-4 text-sm">
                         <div><dt class="text-xs text-slate-500">Nom</dt><dd class="mt-1 font-bold text-emerald-950">{{ $adviceRequest->customer_name ?: 'Non renseigné' }}</dd></div>
-                        <div><dt class="text-xs text-slate-500">Email</dt><dd class="mt-1 break-all font-bold text-emerald-950">{{ $adviceRequest->customer_email ?: 'Non renseigné' }}</dd></div>
                     </dl>
                 </section>
                 <section class="rounded-[2rem] border border-emerald-950/10 bg-[#fffdf8] p-6 shadow-sm">

@@ -321,7 +321,7 @@ Critère de sortie : la suite automatisée reste sans réseau, et le fournisseur
 ## Questions ouvertes non bloquantes pour la phase 1
 
 1. Quelles limites de hauteur et de largeur définissent SMALL, MEDIUM et LARGE ?
-2. Le formulaire MVP collecte-t-il le nom et l’email, ou uniquement les contraintes de conseil ?
+2. Le formulaire MVP conserve uniquement un prénom facultatif en complément des contraintes de conseil ; aucune adresse email visiteur n’est collectée.
 3. Le service web Docker doit-il utiliser Nginx, comme proposé, ou Laravel Octane/PHP intégré pour la démonstration ?
 
 Le plan retient Nginx et reporte les deux premières réponses à la phase 5 si aucune décision n’intervient avant.
