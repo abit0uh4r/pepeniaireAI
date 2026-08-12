@@ -19,6 +19,7 @@ function advicePayload(array $overrides = []): array
 {
     return array_merge([
         'customer_name' => 'Camille',
+        'customer_phone' => '06 12 34 56 78',
         'environment' => PlantEnvironment::INDOOR->value,
         'exposure' => Exposure::PARTIAL_SHADE->value,
         'space_size' => SpaceSize::MEDIUM->value,
@@ -47,7 +48,8 @@ test('a visitor can submit a valid advice request with a secure public token', f
     expect($request->status)->toBe(AdviceRequestStatus::PENDING)
         ->and($request->public_token)->toMatch('/^[a-f0-9]{64}$/')
         ->and($request->public_token)->not->toBe((string) $request->id)
-        ->and($request->customer_name)->toBe('Camille');
+        ->and($request->customer_name)->toBe('Camille')
+        ->and($request->customer_phone)->toBe('06 12 34 56 78');
 });
 
 test('the optional visitor name can be omitted', function () {
@@ -65,6 +67,7 @@ test('the optional visitor name can be omitted', function () {
 test('the public advice form does not collect an email address', function () {
     $this->get(route('advice.create'))
         ->assertOk()
+        ->assertSee('customer_phone')
         ->assertDontSee('customer_email')
         ->assertDontSee('Email de suivi');
 });
@@ -74,6 +77,7 @@ test('advice request validation rejects unsupported choices and missing consent'
         'environment' => PlantEnvironment::BOTH->value,
         'exposure' => 'INVALID',
         'space_size' => null,
+        'customer_phone' => 'not-a-phone',
         'free_text_description' => 'Trop court',
         'consent' => null,
     ]));
@@ -82,6 +86,7 @@ test('advice request validation rejects unsupported choices and missing consent'
         'environment',
         'exposure',
         'space_size',
+        'customer_phone',
         'free_text_description',
         'consent',
     ]);

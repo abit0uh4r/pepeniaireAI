@@ -170,7 +170,7 @@ Critère de sortie : le catalogue fonctionne de bout en bout et une personne non
 
 Résultat : un visiteur soumet une demande, reçoit une URL par token et peut suivre son état sans attendre un traitement.
 
-- [ ] Valider les choix encore ouverts sur les seuils d’espace et les données de contact.
+- [x] Valider les choix encore ouverts sur les seuils d’espace et les données de contact (téléphone facultatif, email visiteur exclu).
 - [x] Créer enums, migration, modèle et factory de demande.
 - [x] Ajouter le formulaire public et sa Form Request.
 - [x] Générer le token public sécurisé.
@@ -244,6 +244,7 @@ Résultat : le visiteur consulte le résultat et le gérant audite les demandes.
 - [x] Afficher les quatre états sur la page publique.
 - [x] Afficher résumé, raisons, entretien et snapshot de quantité.
 - [x] Ajouter un accueil d’administration, un historique simple et un détail de demande.
+- [x] Afficher le téléphone fourni uniquement dans l’administration pour permettre au gérant de recontacter le visiteur.
 - [x] Vérifier l’échappement des textes issus du conseiller.
 - [x] Vérifier l’accessibilité clavier et la présentation mobile.
 
@@ -321,7 +322,7 @@ Critère de sortie : la suite automatisée reste sans réseau, et le fournisseur
 ## Questions ouvertes non bloquantes pour la phase 1
 
 1. Quelles limites de hauteur et de largeur définissent SMALL, MEDIUM et LARGE ?
-2. Le formulaire MVP conserve uniquement un prénom facultatif en complément des contraintes de conseil ; aucune adresse email visiteur n’est collectée.
+2. Le formulaire MVP conserve un prénom et un téléphone facultatifs en complément des contraintes de conseil ; aucune adresse email visiteur n’est collectée. Le téléphone reste privé et n’est jamais envoyé au conseiller IA.
 3. Le service web Docker doit-il utiliser Nginx, comme proposé, ou Laravel Octane/PHP intégré pour la démonstration ?
 
 Le plan retient Nginx et reporte les deux premières réponses à la phase 5 si aucune décision n’intervient avant.

@@ -58,7 +58,8 @@ test('the job claims a pending request and persists only the quantity snapshot',
         $mock->shouldReceive('advise')
             ->once()
             ->withArgs(fn (array $context, Collection $candidates): bool => $candidates->modelKeys() === [$plant->id]
-                && ! array_key_exists('customer_email', $context))
+                && ! array_key_exists('customer_email', $context)
+                && ! array_key_exists('customer_phone', $context))
             ->andReturn(validAdvisorResult($plant));
     });
 

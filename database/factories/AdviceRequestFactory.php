@@ -23,6 +23,7 @@ class AdviceRequestFactory extends Factory
     {
         return [
             'customer_name' => fake()->optional()->name(),
+            'customer_phone' => null,
             'environment' => fake()->randomElement([PlantEnvironment::INDOOR, PlantEnvironment::OUTDOOR]),
             'exposure' => fake()->randomElement(Exposure::cases()),
             'space_size' => fake()->randomElement(SpaceSize::cases()),

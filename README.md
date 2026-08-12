@@ -164,7 +164,7 @@ Les plantes inactives ou en rupture restent dans la base mais ne seront pas cand
 
 ## Demande de conseil publique
 
-Le formulaire public est disponible sur `/conseil`, sans création de compte. Il collecte l’environnement, l’exposition, la taille de l’espace, l’entretien disponible et une description libre. Le prénom du visiteur est facultatif et aucune adresse email n’est demandée.
+Le formulaire public est disponible sur `/conseil`, sans création de compte. Il collecte l’environnement, l’exposition, la taille de l’espace, l’entretien disponible et une description libre. Le prénom et le numéro de téléphone du visiteur sont facultatifs ; aucune adresse email n’est demandée. Le téléphone est visible uniquement par le gérant dans l’administration et n’est jamais transmis à Groq.
 
 Une soumission valide crée une demande au statut `PENDING` et un token public aléatoire de 64 caractères hexadécimaux, puis redirige vers `/conseil/suivi/{token}`. Cette page affiche l’état courant et interroge le point `/conseil/suivi/{token}/status` avec un polling limité, sans exposer les données personnelles de la demande. Le traitement asynchrone appelle Groq via le SDK `laravel/ai`.
 
