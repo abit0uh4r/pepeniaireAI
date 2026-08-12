@@ -89,11 +89,16 @@
 
                         <section class="border-t border-slate-100 pt-8">
                             <p class="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">Optionnel</p>
-                            <div class="mt-4 max-w-xl">
+                            <div class="mt-4 grid max-w-xl gap-5 sm:grid-cols-2">
                                 <div>
                                     <label for="customer_name" class="block text-sm font-semibold text-slate-800">Votre prénom</label>
                                     <input id="customer_name" name="customer_name" type="text" maxlength="120" value="{{ old('customer_name') }}" class="mt-2 block w-full rounded-xl border-slate-300 py-3 shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
                                     <x-input-error :messages="$errors->get('customer_name')" class="mt-2" />
+                                </div>
+                                <div>
+                                    <label for="customer_phone" class="block text-sm font-semibold text-slate-800">Téléphone (optionnel)</label>
+                                    <input id="customer_phone" name="customer_phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" value="{{ old('customer_phone') }}" placeholder="06 12 34 56 78" class="mt-2 block w-full rounded-xl border-slate-300 py-3 shadow-sm focus:border-emerald-600 focus:ring-emerald-600">
+                                    <x-input-error :messages="$errors->get('customer_phone')" class="mt-2" />
                                 </div>
                             </div>
                         </section>

@@ -65,6 +65,7 @@ test('it sends only the request context and prefiltered plant fields to the Lara
             && str_contains($message, 'Ficus test')
             && str_contains($message, (string) $plant->id)
             && ! str_contains($message, 'customer_email')
+            && ! str_contains($message, 'customer_phone')
             && ! str_contains($message, 'price')
             && ! str_contains($message, 'stock_quantity')
             && ! str_contains($message, 'pet_safe')

@@ -23,6 +23,7 @@ test('a manager can filter the advice request history', function () {
     $manager = User::factory()->create();
     AdviceRequest::factory()->create([
         'customer_name' => 'Camille Jardin',
+        'customer_phone' => '06 12 34 56 78',
         'status' => AdviceRequestStatus::PENDING,
     ]);
     AdviceRequest::factory()->completed()->create([
@@ -36,6 +37,7 @@ test('a manager can filter the advice request history', function () {
         ]))
         ->assertOk()
         ->assertSee('Camille Jardin')
+        ->assertSee('06 12 34 56 78')
         ->assertDontSee('Nora Balcon')
         ->assertSee('En attente');
 });
@@ -61,6 +63,7 @@ test('a manager can audit the persisted quantity snapshot', function () {
     ]);
     $adviceRequest = AdviceRequest::factory()->completed()->create([
         'customer_name' => 'Samira',
+        'customer_phone' => '0611223344',
         'space_summary' => '<script>alert(1)</script>',
         'general_advice' => 'Conseil contrôlé',
     ]);
@@ -77,6 +80,7 @@ test('a manager can audit the persisted quantity snapshot', function () {
         ->assertSee('Ficus audité')
         ->assertSee('Stock observé')
         ->assertSee('6')
+        ->assertSee('0611223344')
         ->assertDontSee('Stock courant')
         ->assertSee('&lt;script&gt;alert(1)&lt;/script&gt;', escape: false)
         ->assertDontSee('<script>', escape: false);

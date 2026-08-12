@@ -63,7 +63,7 @@ Le conseiller recevra :
 - le texte libre nettoyé ;
 - les identifiants et propriétés utiles des seules plantes candidates.
 
-Il ne recevra ni accès à la base, ni capacité d’écriture, ni nom ou email du visiteur.
+Il ne recevra ni accès à la base, ni capacité d’écriture, ni nom, téléphone ou email du visiteur.
 
 Laravel validera le format, limitera les tailles de texte, rejettera les identifiants absents, rechargera les plantes, vérifiera leur activité, leur éligibilité et leur stock, dédupliquera les résultats puis persistera le tout dans une transaction courte.
 
@@ -131,7 +131,7 @@ La commande de référence sera `php artisan test`. Les filtres Pest pourront ac
 
 ### TD-014 : Contrat IA et exécution asynchrone
 
-Le contrat applicatif `PlantAdvisor` reçoit un tableau de contexte ne contenant ni nom ni adresse email, ainsi qu’une collection de plantes candidates fournie par Laravel. Le conteneur Laravel lie ce contrat à `GroqPlantAdvisor`, qui utilise l’Agent structuré du SDK `laravel/ai`.
+Le contrat applicatif `PlantAdvisor` reçoit un tableau de contexte ne contenant ni nom, téléphone ni adresse email, ainsi qu’une collection de plantes candidates fournie par Laravel. Le conteneur Laravel lie ce contrat à `GroqPlantAdvisor`, qui utilise l’Agent structuré du SDK `laravel/ai`.
 
 `GeneratePlantAdviceJob` reçoit l’identifiant de la demande, reconstruit le contexte et demande à `PlantEligibilityService` les candidates au moment de l’exécution. Il utilise la connexion database, possède trois tentatives, un timeout de 90 secondes et des délais de reprise bornés. La validation défensive de la réponse IA réside directement dans le Job avant la persistance transactionnelle.
 
@@ -153,7 +153,7 @@ La persistance est exécutée dans une transaction SQL courte après l’appel a
 
 `GroqPlantAdvisor` utilise le SDK officiel `laravel/ai` avec le fournisseur `Lab::Groq`. L’Agent `App\Ai\Agents\PlantAdviceAgent` porte les instructions francophones, le schéma de sortie structurée, le timeout et la limite de tokens. La clé, l’URL et le modèle sont configurés dans `config/ai.php` et les variables d’environnement correspondantes.
 
-Le SDK demande une sortie structurée JSON lorsque le modèle le supporte. La réponse est ensuite transmise au Job pour validation métier indépendante. Le fournisseur ne reçoit ni nom ni email, et seulement les plantes candidates avec leurs propriétés botaniques utiles. Groq est le fournisseur unique et la clé reste obligatoire uniquement dans l’environnement qui exécute réellement le Job.
+Le SDK demande une sortie structurée JSON lorsque le modèle le supporte. La réponse est ensuite transmise au Job pour validation métier indépendante. Le fournisseur ne reçoit ni nom, téléphone ni email, et seulement les plantes candidates avec leurs propriétés botaniques utiles. Groq est le fournisseur unique et la clé reste obligatoire uniquement dans l’environnement qui exécute réellement le Job.
 
 ### TD-018 : En-têtes et cache des pages publiques
 
@@ -190,7 +190,7 @@ L’interface adopte un système visuel commun « carnet botanique » réalisé 
 Ces sujets ne bloquent ni l’installation ni le catalogue :
 
 - valeurs des seuils de hauteur et largeur pour SMALL, MEDIUM et LARGE ;
-- collecte facultative du prénom du visiteur ; aucune adresse email visiteur ;
+- collecte facultative du prénom et du téléphone du visiteur ; aucune adresse email visiteur ;
 - ajout de la relance manuelle des demandes échouées ;
 - conservation éventuelle d’une réponse IA brute nettoyée ;
 - sécurité animale (`pet_safe`) et règle BR-06 ;
@@ -212,3 +212,9 @@ Mailpit est retiré de l’environnement local à la demande du porteur du proje
 L’archivage d’une plante reste une suppression logique (`deleted_at`) et ne doit pas rendre la fiche irrécupérable pour le gérant. Une page privée `/admin/plants/archived` utilise `onlyTrashed()` pour rechercher les fiches archivées et propose une action `restore` protégée par la policy du catalogue.
 
 La restauration annule le soft delete et remet `is_active` à `true`. La plante réapparaît dans le catalogue, mais elle ne devient candidate au conseil que si son stock et tous ses critères déterministes sont encore compatibles. Aucune suppression physique ni route publique n’est ajoutée.
+
+### TD-022 : Téléphone de contact du visiteur
+
+Le formulaire public peut recueillir un numéro de téléphone facultatif afin que le gérant puisse recontacter le visiteur au sujet de sa demande. Le numéro est validé comme une chaîne de 30 caractères maximum, avec les chiffres et les séparateurs téléphoniques courants (`+`, espaces, parenthèses, points et tirets).
+
+Le numéro est stocké dans `advice_requests.customer_phone` et affiché uniquement dans l’administration authentifiée. Il n’est jamais rendu sur la page publique de suivi, inclus dans le contexte du conseiller IA ou envoyé à Groq. L’absence de numéro ne bloque pas la demande de conseil.

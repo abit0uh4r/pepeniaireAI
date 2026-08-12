@@ -44,6 +44,9 @@
                     <a href="{{ route('admin.advice-requests.show', $request) }}" class="grid gap-4 border-b border-emerald-950/10 px-5 py-5 transition last:border-b-0 hover:bg-lime-50 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_160px_110px_32px] md:items-center md:px-7">
                         <div>
                             <p class="font-bold text-emerald-950">{{ $request->customer_name ?: 'Visiteur anonyme' }}</p>
+                            @if ($request->customer_phone)
+                                <p class="mt-1 text-sm font-medium text-emerald-800">{{ $request->customer_phone }}</p>
+                            @endif
                             <p class="mt-2 text-[0.68rem] font-bold uppercase tracking-wider text-slate-400">{{ $request->created_at->format('d.m.Y · H:i') }}</p>
                         </div>
                         <div class="text-sm">

@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable([
     'public_token',
     'customer_name',
+    'customer_phone',
     'environment',
     'exposure',
     'space_size',
