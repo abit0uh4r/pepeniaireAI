@@ -6,9 +6,14 @@
                 <h2 class="mt-1 text-3xl font-semibold tracking-tight text-slate-900">Catalogue vivant</h2>
                 <p class="mt-1 max-w-2xl text-sm text-slate-500">Gardez les caractéristiques et le stock qui alimenteront les futurs conseils.</p>
             </div>
-            <a href="{{ route('admin.plants.create') }}" class="inline-flex items-center justify-center rounded-full bg-emerald-800 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-900 focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2">
-                <span class="mr-2 text-lg leading-none">+</span> Ajouter une plante
-            </a>
+            <div class="flex flex-col gap-3 sm:flex-row">
+                <a href="{{ route('admin.plants.archived') }}" class="inline-flex items-center justify-center rounded-full border border-emerald-800 px-5 py-3 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2">
+                    Plantes archivées
+                </a>
+                <a href="{{ route('admin.plants.create') }}" class="inline-flex items-center justify-center rounded-full bg-emerald-800 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-900 focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2">
+                    <span class="mr-2 text-lg leading-none">+</span> Ajouter une plante
+                </a>
+            </div>
         </div>
     </x-slot>
 

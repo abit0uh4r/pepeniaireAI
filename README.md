@@ -152,7 +152,7 @@ docker compose exec app php artisan db:seed --class=ManagerSeeder
 
 Le catalogue est accessible uniquement au gérant connecté et vérifié depuis `/admin/plants`.
 
-Le formulaire permet de renseigner le nom, l’espèce, l’environnement, une exposition, les niveaux d’arrosage et d’entretien, les dimensions adultes, le prix et le stock. Les fiches peuvent être recherchées, filtrées, modifiées, désactivées ou archivées par suppression logique.
+Le formulaire permet de renseigner le nom, l’espèce, l’environnement, une exposition, les niveaux d’arrosage et d’entretien, les dimensions adultes, le prix et le stock. Les fiches peuvent être recherchées, filtrées, modifiées, désactivées ou archivées par suppression logique. La page `/admin/plants/archived` permet au gérant de rechercher une fiche archivée et de la restaurer dans le catalogue.
 
 Pour initialiser le catalogue de démonstration (23 plantes variées) :
 

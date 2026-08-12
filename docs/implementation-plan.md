@@ -151,6 +151,7 @@ Résultat : le gérant administre des plantes validées sans perdre l’historiq
 - [x] Implémenter les contraintes de base, casts, soft delete et index.
 - [x] Ajouter Form Requests, policy et CRUD Blade.
 - [x] Ajouter recherche, filtres et pagination.
+- [x] Ajouter une page d’administration des plantes archivées et une restauration contrôlée.
 - [x] Traiter le stock et l’activité de façon explicite ; reporter `pet_safe` après le MVP.
 - [x] Tester création, modification, désactivation, suppression logique et autorisations.
 

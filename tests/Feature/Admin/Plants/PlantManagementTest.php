@@ -30,6 +30,7 @@ beforeEach(function () {
 
 test('guests cannot view or modify the plant catalogue', function () {
     $this->get(route('admin.plants.index'))->assertRedirect(route('login'));
+    $this->get(route('admin.plants.archived'))->assertRedirect(route('login'));
     $this->post(route('admin.plants.store'), plantPayload())->assertRedirect(route('login'));
 
     expect(Plant::query()->count())->toBe(0);
@@ -40,6 +41,10 @@ test('unverified users cannot access the plant catalogue', function () {
 
     $this->actingAs($user)
         ->get(route('admin.plants.index'))
+        ->assertRedirect(route('verification.notice'));
+
+    $this->actingAs($user)
+        ->get(route('admin.plants.archived'))
         ->assertRedirect(route('verification.notice'));
 });
 
@@ -118,4 +123,39 @@ test('archiving a plant uses soft delete and preserves its row', function () {
         ->assertRedirect(route('admin.plants.index'));
 
     $this->assertSoftDeleted('plants', ['id' => $plant->id]);
+
+    $this->actingAs($this->manager)
+        ->get(route('admin.plants.index'))
+        ->assertOk()
+        ->assertDontSee($plant->name);
+
+    $this->actingAs($this->manager)
+        ->get(route('admin.plants.archived'))
+        ->assertOk()
+        ->assertSee($plant->name)
+        ->assertSee('Restaurer');
+
+    $this->actingAs($this->manager)
+        ->patch(route('admin.plants.restore', $plant))
+        ->assertRedirect(route('admin.plants.archived'));
+
+    expect($plant->fresh()->trashed())->toBeFalse()
+        ->and($plant->fresh()->is_active)->toBeTrue();
+
+    $this->actingAs($this->manager)
+        ->get(route('admin.plants.index'))
+        ->assertOk()
+        ->assertSee($plant->name);
+});
+
+test('only managers can restore an archived plant', function () {
+    $plant = Plant::factory()->create();
+    $plant->delete();
+    $user = User::factory()->unverified()->create();
+
+    $this->actingAs($user)
+        ->patch(route('admin.plants.restore', $plant))
+        ->assertRedirect(route('verification.notice'));
+
+    expect($plant->fresh()->trashed())->toBeTrue();
 });
